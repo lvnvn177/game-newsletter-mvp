@@ -20,6 +20,16 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
       setIsLoading(true)
       setError(null)
 
+      // 기존 이미지가 있다면 삭제
+      if (block.content.imageUrl) {
+        const oldPath = block.content.imageUrl.split('/newsletters/').pop()
+        if (oldPath) {
+          await supabase.storage
+            .from('images')
+            .remove([`newsletters/${oldPath}`])
+        }
+      }
+
       // 파일 크기 체크
       if (file.size > 5 * 1024 * 1024) {
         throw new Error('파일 크기는 5MB 이하여야 합니다')

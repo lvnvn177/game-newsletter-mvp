@@ -1,59 +1,72 @@
 'use client'
 
-import { useState } from 'react'
-import { DndContext, closestCenter } from '@dnd-kit/core'
+import { 
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core'
 import {
+  arrayMove,
   SortableContext,
-  verticalListSortingStrategy,
-  arrayMove
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy
 } from '@dnd-kit/sortable'
+import { SortableBlock } from './sortable-block'
 import type { EditorBlock } from '@/types/editor'
-import { BlockRenderer } from './block-renderer'
 
 interface EditorCanvasProps {
-  initialBlocks?: EditorBlock[]
-  onChange?: (blocks: EditorBlock[]) => void
+  blocks: EditorBlock[]
+  onChange: (blocks: EditorBlock[]) => void
 }
 
-export default function EditorCanvas({ 
-  initialBlocks = [], 
-  onChange 
-}: EditorCanvasProps) {
-  const [blocks, setBlocks] = useState<EditorBlock[]>(initialBlocks)
+export default function EditorCanvas({ blocks, onChange }: EditorCanvasProps) {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
 
-    if (active.id !== over.id) {
-      setBlocks((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id)
-        const newIndex = items.findIndex((item) => item.id === over.id)
-        const newBlocks = arrayMove(items, oldIndex, newIndex)
-        onChange?.(newBlocks)
-        return newBlocks
-      })
+    if (over && active.id !== over.id) {
+      const oldIndex = blocks.findIndex((block) => block.id === active.id)
+      const newIndex = blocks.findIndex((block) => block.id === over.id)
+      
+      onChange(arrayMove(blocks, oldIndex, newIndex))
     }
   }
 
   return (
-    <div className="min-h-[600px] w-full rounded-lg border border-gray-200 bg-white p-4">
-      <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={blocks} strategy={verticalListSortingStrategy}>
-          {blocks.map((block) => (
-            <BlockRenderer
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={blocks}
+        strategy={verticalListSortingStrategy}
+      >
+        <div className="space-y-4">
+          {blocks.map(block => (
+            <SortableBlock
               key={block.id}
               block={block}
               onUpdate={(updatedBlock) => {
-                const newBlocks = blocks.map((b) =>
+                const newBlocks = blocks.map(b => 
                   b.id === updatedBlock.id ? updatedBlock : b
                 )
-                setBlocks(newBlocks)
-                onChange?.(newBlocks)
+                onChange(newBlocks)
               }}
             />
           ))}
-        </SortableContext>
-      </DndContext>
-    </div>
+        </div>
+      </SortableContext>
+    </DndContext>
   )
 } 

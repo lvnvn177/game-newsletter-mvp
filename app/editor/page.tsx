@@ -148,7 +148,7 @@ export default function EditorPage() {
                 </div>
               </div>
               <EditorCanvas
-                initialBlocks={blocks}
+                blocks={blocks}
                 onChange={handleBlocksChange}
               />
             </div>
