@@ -59,7 +59,9 @@ export default function EditorPage() {
         .insert({
           title,
           content: { blocks },
-          owner_id: '00000000-0000-0000-0000-000000000000' // MVP에서는 고정값 사용
+          summary: blocks.find(b => b.type === 'text')?.content.text?.slice(0, 200) || title,
+          thumbnail_url: blocks.find(b => b.type === 'image')?.content.imageUrl || '/default-thumbnail.jpg',
+          owner_id: '00000000-0000-0000-0000-000000000000'
         })
 
       if (error) throw error

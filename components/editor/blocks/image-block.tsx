@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useCallback, useState } from 'react'
 import type { EditorBlock } from '@/types/editor'
 import { supabase } from '@/lib/supabase'
+import { nanoid } from 'nanoid'
 
 interface ImageBlockProps {
   block: EditorBlock
@@ -19,26 +20,43 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
       setIsLoading(true)
       setError(null)
 
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Math.random()}.${fileExt}`
+      // 파일 크기 체크
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('파일 크기는 5MB 이하여야 합니다')
+      }
+
+      const fileExt = file.name.split('.').pop()?.toLowerCase()
+      // 파일 형식 체크
+      if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt || '')) {
+        throw new Error('지원하지 않는 파일 형식입니다')
+      }
+
+      const fileName = `${nanoid()}.${fileExt}`
       const filePath = `newsletters/${fileName}`
 
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('images')
-        .upload(filePath, file)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        console.error('Upload error:', uploadError)
+        throw new Error(uploadError.message)
+      }
 
-      const {
-        data: { publicUrl }
-      } = supabase.storage.from('images').getPublicUrl(filePath)
+      const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath)
 
       onUpdate({
         ...block,
         content: { ...block.content, imageUrl: publicUrl }
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : '이미지 업로드 실패')
+      const errorMessage = err instanceof Error ? err.message : '이미지 업로드 실패'
+      setError(errorMessage)
       console.error('Error uploading image:', err)
     } finally {
       setIsLoading(false)
