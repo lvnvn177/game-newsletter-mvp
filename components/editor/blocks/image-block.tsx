@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import type { EditorBlock } from '@/types/editor'
 import { supabase } from '@/lib/supabase'
 import { nanoid } from 'nanoid'
@@ -14,6 +14,7 @@ interface ImageBlockProps {
 export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [tempFile, setTempFile] = useState<File | null>(null)
 
   const handleImageUpload = useCallback(async (file: File) => {
     try {
@@ -30,46 +31,34 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
         throw new Error('지원하지 않는 파일 형식입니다')
       }
 
-      // 임시 ID 생성 (실제 저장 전까지 사용)
-      const tempId = 'temp_' + nanoid()
-      const fileName = `${tempId}_${nanoid()}.${fileExt}`
-      const filePath = `newsletters/${fileName}`
-
-      // 기존 이미지가 있고 임시 이미지인 경우 삭제
-      if (block.content.imageUrl) {
-        const oldPath = block.content.imageUrl.split('/newsletters/').pop()
-        if (oldPath && oldPath.startsWith('temp_')) {
-          await supabase.storage
-            .from('images')
-            .remove([`newsletters/${oldPath}`])
-        }
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        })
-
-      if (uploadError) throw new Error(uploadError.message)
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('images')
-        .getPublicUrl(filePath)
+      // 임시 URL 생성
+      const tempUrl = URL.createObjectURL(file)
+      setTempFile(file)
 
       onUpdate({
         ...block,
-        content: { ...block.content, imageUrl: publicUrl }
+        content: { 
+          ...block.content, 
+          imageUrl: tempUrl,
+          tempFile: file // 임시 파일 정보 저장
+        }
       })
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '이미지 업로드 실패'
       setError(errorMessage)
-      console.error('Error uploading image:', err)
     } finally {
       setIsLoading(false)
     }
   }, [block, onUpdate])
+
+  useEffect(() => {
+    // 컴포넌트 언마운트 시 임시 URL 해제
+    return () => {
+      if (block.content.imageUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(block.content.imageUrl)
+      }
+    }
+  }, [block.content.imageUrl])
 
   return (
     <div className="relative min-h-[200px] w-full" role="region" aria-label="이미지 블록">

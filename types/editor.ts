@@ -1,18 +1,22 @@
 export type BlockType = 'text' | 'image' | 'button'
 
+export type BlockContent = {
+  text?: string
+  imageUrl?: string
+  buttonText?: string
+  buttonUrl?: string
+  tempFile?: File
+}
+
 export interface EditorBlock {
   id: string
   type: BlockType
-  content: {
-    text?: string
-    imageUrl?: string
-    buttonText?: string
-    buttonUrl?: string
-  }
-  settings: {
-    layout?: string
-    style?: Record<string, string>
-  }
+  content: BlockContent
+  settings: BlockSettings
+}
+
+export interface BlockSettings {
+  style?: React.CSSProperties
 }
 
 export interface Template {

@@ -55,45 +55,54 @@ export default function EditorPage() {
     try {
       setIsSaving(true)
 
-      // 먼저 newsletter 저장하여 실제 ID 얻기
-      const { data: newsletter, error: insertError } = await supabase
+      // 이미지 블록에서 임시 파일이 있는 것들만 필터링
+      const imageBlocks = blocks.filter(
+        block => block.type === 'image' && block.content.tempFile
+      )
+
+      // 모든 이미지 업로드 진행
+      const updatedBlocks = [...blocks]
+      for (const [index, block] of imageBlocks.entries()) {
+        const file = block.content.tempFile as File
+        const fileExt = file.name.split('.').pop()?.toLowerCase()
+        const fileName = `${nanoid()}.${fileExt}`
+        const filePath = `newsletters/${fileName}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('images')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          })
+
+        if (uploadError) throw uploadError
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('images')
+          .getPublicUrl(filePath)
+
+        // 블록 업데이트
+        updatedBlocks[index] = {
+          ...block,
+          content: {
+            imageUrl: publicUrl,
+            tempFile: undefined // 임시 파일 정보 제거
+          }
+        }
+      }
+
+      // newsletter 저장
+      const { error: insertError } = await supabase
         .from('newsletters')
         .insert({
           title,
-          content: { blocks },
-          summary: blocks.find(b => b.type === 'text')?.content.text?.slice(0, 200) || title,
-          thumbnail_url: blocks.find(b => b.type === 'image' && b.content.imageUrl)?.content.imageUrl || '/default-thumbnail.jpg',
+          content: { blocks: updatedBlocks },
+          summary: updatedBlocks.find(b => b.type === 'text')?.content.text?.slice(0, 200) || title,
+          thumbnail_url: updatedBlocks.find(b => b.type === 'image')?.content.imageUrl || '/default-thumbnail.jpg',
           owner_id: '00000000-0000-0000-0000-000000000000'
         })
-        .select()
-        .single()
 
       if (insertError) throw insertError
-
-      // 임시 이미지들의 이름을 실제 ID로 변경
-      const imageBlocks = blocks.filter(block => 
-        block.type === 'image' && 
-        block.content.imageUrl && 
-        block.content.imageUrl.includes('/newsletters/')
-      )
-
-      for (const block of imageBlocks) {
-        const oldPath = block.content.imageUrl!.split('/newsletters/').pop()
-        if (oldPath && oldPath.startsWith('temp_')) {
-          const newFileName = oldPath.replace('temp_', `${newsletter.id}_`)
-          const newFilePath = `newsletters/${newFileName}`
-          
-          // 파일 복사
-          await supabase.storage
-            .from('images')
-            .copy(`newsletters/${oldPath}`, newFilePath)
-          
-          // 이전 파일 삭제
-          await supabase.storage
-            .from('images')
-            .remove([`newsletters/${oldPath}`])
-        }
-      }
 
       toast.success('저장되었습니다')
       router.push('/newsletters')
