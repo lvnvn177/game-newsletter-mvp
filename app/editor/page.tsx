@@ -54,17 +54,46 @@ export default function EditorPage() {
 
     try {
       setIsSaving(true)
-      const { error } = await supabase
+
+      // 먼저 newsletter 저장하여 실제 ID 얻기
+      const { data: newsletter, error: insertError } = await supabase
         .from('newsletters')
         .insert({
           title,
           content: { blocks },
           summary: blocks.find(b => b.type === 'text')?.content.text?.slice(0, 200) || title,
-          thumbnail_url: blocks.find(b => b.type === 'image')?.content.imageUrl || '/default-thumbnail.jpg',
+          thumbnail_url: blocks.find(b => b.type === 'image' && b.content.imageUrl)?.content.imageUrl || '/default-thumbnail.jpg',
           owner_id: '00000000-0000-0000-0000-000000000000'
         })
+        .select()
+        .single()
 
-      if (error) throw error
+      if (insertError) throw insertError
+
+      // 임시 이미지들의 이름을 실제 ID로 변경
+      const imageBlocks = blocks.filter(block => 
+        block.type === 'image' && 
+        block.content.imageUrl && 
+        block.content.imageUrl.includes('/newsletters/')
+      )
+
+      for (const block of imageBlocks) {
+        const oldPath = block.content.imageUrl!.split('/newsletters/').pop()
+        if (oldPath && oldPath.startsWith('temp_')) {
+          const newFileName = oldPath.replace('temp_', `${newsletter.id}_`)
+          const newFilePath = `newsletters/${newFileName}`
+          
+          // 파일 복사
+          await supabase.storage
+            .from('images')
+            .copy(`newsletters/${oldPath}`, newFilePath)
+          
+          // 이전 파일 삭제
+          await supabase.storage
+            .from('images')
+            .remove([`newsletters/${oldPath}`])
+        }
+      }
 
       toast.success('저장되었습니다')
       router.push('/newsletters')

@@ -27,7 +27,7 @@ export function BlockControls({ onAddBlock }: BlockControlsProps) {
       </button>
       
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-40 rounded-md border border-gray-200 bg-white shadow-lg">
+        <div className="absolute left-0 mt-2 w-40 rounded-md border border-gray-200 bg-white shadow-lg z-50">
           {blockTypes.map(({ type, label }) => (
             <button
               key={type}
