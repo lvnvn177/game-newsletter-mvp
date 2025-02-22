@@ -41,4 +41,5 @@ export interface NewsletterSend {
     success_count?: number
     fail_count?: number
   }
+  newsletter?: Newsletter
 } 
