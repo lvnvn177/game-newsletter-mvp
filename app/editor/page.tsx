@@ -16,7 +16,9 @@ export default function EditorPage() {
   const [blocks, setBlocks] = useState<EditorBlock[]>([])
   const [title, setTitle] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [isSending, setIsSending] = useState(false)
   const [history] = useState(() => new EditorHistory())
+  const [savedNewsletterId, setSavedNewsletterId] = useState<string | null>(null)
 
   const handleTemplateSelect = useCallback((template: Template) => {
     const newBlocks = template.blocks.map(block => ({
@@ -92,7 +94,7 @@ export default function EditorPage() {
       }
 
       // newsletter 저장
-      const { error: insertError } = await supabase
+      const { data, error: insertError } = await supabase
         .from('newsletters')
         .insert({
           title,
@@ -101,16 +103,41 @@ export default function EditorPage() {
           thumbnail_url: updatedBlocks.find(b => b.type === 'image')?.content.imageUrl || '/default-thumbnail.jpg',
           owner_id: '00000000-0000-0000-0000-000000000000'
         })
+        .select()
+        .single()
 
       if (insertError) throw insertError
 
+      setSavedNewsletterId(data.id)
       toast.success('저장되었습니다')
-      router.push('/newsletters')
     } catch (error) {
       console.error('Error saving newsletter:', error)
       toast.error('저장 중 오류가 발생했습니다')
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleSend = async (newsletterId: string) => {
+    try {
+      setIsSending(true)
+      
+      const response = await fetch(`/api/newsletters/${newsletterId}/send`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || '발송에 실패했습니다')
+      }
+
+      const result = await response.json()
+      toast.success(`${result.sentCount}명의 구독자에게 발송되었습니다`)
+    } catch (err) {
+      console.error('Error sending newsletter:', err)
+      toast.error(err instanceof Error ? err.message : '발송에 실패했습니다')
+    } finally {
+      setIsSending(false)
     }
   }
 
@@ -182,6 +209,13 @@ export default function EditorPage() {
                     className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
                   >
                     {isSaving ? '저장 중...' : '저장'}
+                  </button>
+                  <button
+                    onClick={() => savedNewsletterId && handleSend(savedNewsletterId)}
+                    disabled={isSending || isSaving || !savedNewsletterId}
+                    className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 disabled:opacity-50"
+                  >
+                    {isSending ? '발송 중...' : '발송하기'}
                   </button>
                 </div>
               </div>
