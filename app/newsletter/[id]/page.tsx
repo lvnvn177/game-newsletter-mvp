@@ -25,12 +25,13 @@ async function getNewsletter(id: string) {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const newsletter = await getNewsletter(params.id)
+  const { id } = await params;
+  const newsletter = await getNewsletter(id);
   
   if (!newsletter) {
     return {
       title: '뉴스레터를 찾을 수 없습니다'
-    }
+    };
   }
 
   return {
@@ -47,17 +48,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: newsletter.summary,
       images: [newsletter.thumbnail_url],
     }
-  }
+  };
 }
 
 export default async function NewsletterPage({ params }: PageProps) {
-  const newsletter = await getNewsletter(params.id)
+  const { id } = await params;
+  const newsletter = await getNewsletter(id);
 
   if (!newsletter) {
-    notFound()
+    notFound();
   }
 
-  const currentUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/newsletter/${params.id}`
+  const currentUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/newsletter/${id}`;
 
   return (
     <article className="min-h-screen bg-white">
@@ -83,8 +85,8 @@ export default async function NewsletterPage({ params }: PageProps) {
 
         {/* 콘텐츠 */}
         <div className="space-y-8">
-          {newsletter.content.blocks.map((block: any) => (
-            <NewsletterBlockRenderer key={block.id} block={block} />
+          {newsletter.content.blocks.map((block: any, index: number) => (
+            <NewsletterBlockRenderer key={`${block.id}-${index}`} block={block} />
           ))}
         </div>
 
@@ -98,5 +100,5 @@ export default async function NewsletterPage({ params }: PageProps) {
         </div>
       </div>
     </article>
-  )
+  );
 } 
