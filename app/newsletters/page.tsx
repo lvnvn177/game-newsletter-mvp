@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
-import NewsletterCard from '@/components/newsletter-card'
+import NewsletterGrid from '@/components/newsletter/newsletter-grid'
 
 async function getAllNewsletters() {
   const { data, error } = await supabase
@@ -13,6 +13,8 @@ async function getAllNewsletters() {
 }
 
 export default async function NewslettersPage() {
+  const newsletters = await getAllNewsletters()
+  
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
@@ -20,21 +22,9 @@ export default async function NewslettersPage() {
           모든 뉴스레터
         </h1>
         <Suspense fallback={<div>로딩중...</div>}>
-          <NewsletterGrid />
+          <NewsletterGrid initialNewsletters={newsletters} />
         </Suspense>
       </div>
-    </div>
-  )
-}
-
-async function NewsletterGrid() {
-  const newsletters = await getAllNewsletters()
-  
-  return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {newsletters.map((newsletter) => (
-        <NewsletterCard key={newsletter.id} newsletter={newsletter} />
-      ))}
     </div>
   )
 } 

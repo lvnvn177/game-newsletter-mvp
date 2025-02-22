@@ -1,17 +1,5 @@
 import { Suspense } from 'react'
-import { supabase } from '@/lib/supabase'
-import NewsletterCard from '@/components/newsletter-card'
-
-async function getLatestNewsletters() {
-  const { data, error } = await supabase
-    .from('newsletters')
-    .select('id, title, summary, thumbnail_url, created_at')
-    .order('created_at', { ascending: false })
-    .limit(3)
-
-  if (error) throw error
-  return data
-}
+import LatestNewslettersGrid from '@/components/newsletter/latest-newsletters-grid'
 
 export default async function Home() {
   return (
@@ -33,22 +21,10 @@ export default async function Home() {
             최신 뉴스레터
           </h2>
           <Suspense fallback={<div>로딩중...</div>}>
-            <LatestNewsletters />
+            <LatestNewslettersGrid />
           </Suspense>
         </section>
       </main>
-    </div>
-  )
-}
-
-async function LatestNewsletters() {
-  const newsletters = await getLatestNewsletters()
-  
-  return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {newsletters.map((newsletter) => (
-        <NewsletterCard key={newsletter.id} newsletter={newsletter} />
-      ))}
     </div>
   )
 }

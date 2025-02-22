@@ -8,9 +8,19 @@ import type { Newsletter } from '@/types/database'
 
 interface NewsletterCardProps {
   newsletter: Pick<Newsletter, 'id' | 'title' | 'summary' | 'thumbnail_url' | 'created_at'>
+  onDelete: (id: string) => Promise<void>
 }
 
-export default function NewsletterCard({ newsletter }: NewsletterCardProps) {
+export default function NewsletterCard({ newsletter, onDelete }: NewsletterCardProps) {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault() // Link 컴포넌트의 기본 동작 방지
+    try {
+      await onDelete(newsletter.id)
+    } catch (err) {
+      console.error('Error deleting newsletter:', err)
+    }
+  }
+
   return (
     <Link 
       href={`/newsletter/${newsletter.id}`}
@@ -39,6 +49,12 @@ export default function NewsletterCard({ newsletter }: NewsletterCardProps) {
           })}
         </time>
       </div>
+      <button
+        onClick={handleDelete}
+        className="absolute right-2 top-2 rounded-full bg-red-500 p-2 text-white opacity-0 transition-opacity group-hover:opacity-100"
+      >
+        삭제
+      </button>
     </Link>
   )
 } 
