@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Subscriber } from '@/types/database'
 import { toast } from 'react-hot-toast'
+import { CSVUpload } from '@/components/subscribers/csv-upload'
 
 export default function SubscribersPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
@@ -59,12 +60,7 @@ export default function SubscribersPage() {
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-2xl font-bold">구독자 관리</h1>
-          <button
-            onClick={() => {/* CSV 업로드 구현 예정 */}}
-            className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-          >
-            CSV 업로드
-          </button>
+          <CSVUpload onUploadSuccess={fetchSubscribers} />
         </div>
 
         <div className="rounded-lg bg-white shadow">
