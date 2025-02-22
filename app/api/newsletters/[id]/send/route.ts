@@ -9,6 +9,10 @@ export async function POST(
 ) {
   try {
     const { id } = params
+    let sendStatus: 'success' | 'failed' = 'success'
+    let errorMessage: string | undefined
+    let successCount = 0
+    let failCount = 0
 
     // 뉴스레터 데이터 조회
     const { data: newsletter, error: newsletterError } = await supabase
@@ -41,17 +45,43 @@ export async function POST(
     // 이메일 HTML 생성
     const html = generateNewsletterHTML(newsletter)
 
-    // MVP에서는 한 번에 모든 구독자에게 발송 (실제 서비스에서는 청크 단위로 처리 필요)
-    await sendEmail({
-      to: subscribers.map(sub => sub.email),
-      subject: newsletter.title,
-      html,
-    })
+    try {
+      // 이메일 발송
+      await sendEmail({
+        to: subscribers.map(sub => sub.email),
+        subject: newsletter.title,
+        html,
+      })
+      successCount = subscribers.length
+    } catch (error) {
+      sendStatus = 'failed'
+      errorMessage = error instanceof Error ? error.message : '발송 중 오류 발생'
+      failCount = subscribers.length
+    }
 
-    // 발송 성공 응답
+    // 발송 이력 저장
+    const { error: sendError } = await supabase
+      .from('newsletter_sends')
+      .insert({
+        newsletter_id: id,
+        sent_at: new Date().toISOString(),
+        status: sendStatus,
+        total_recipients: subscribers.length,
+        error_message: errorMessage,
+        metadata: {
+          success_count: successCount,
+          fail_count: failCount
+        }
+      })
+
+    if (sendError) throw sendError
+
+    // 발송 결과 응답
     return NextResponse.json({
-      success: true,
-      sentCount: subscribers.length,
+      success: sendStatus === 'success',
+      sentCount: successCount,
+      failCount,
+      error: errorMessage
     })
 
   } catch (error) {

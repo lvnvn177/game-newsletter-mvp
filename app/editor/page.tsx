@@ -132,7 +132,16 @@ export default function EditorPage() {
       }
 
       const result = await response.json()
-      toast.success(`${result.sentCount}명의 구독자에게 발송되었습니다`)
+      
+      if (result.success) {
+        toast.success(
+          `발송 완료: ${result.sentCount}명의 구독자에게 발송되었습니다`
+        )
+      } else {
+        toast.error(
+          `발송 실패: ${result.failCount}명 발송 실패. ${result.error || ''}`
+        )
+      }
     } catch (err) {
       console.error('Error sending newsletter:', err)
       toast.error(err instanceof Error ? err.message : '발송에 실패했습니다')

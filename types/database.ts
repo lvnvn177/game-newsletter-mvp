@@ -28,4 +28,17 @@ export interface Subscriber {
   email: string
   added_at: string
   owner_id: string
+}
+
+export interface NewsletterSend {
+  id: string
+  newsletter_id: string
+  sent_at: string
+  status: 'success' | 'failed'
+  total_recipients: number
+  error_message?: string
+  metadata?: {
+    success_count?: number
+    fail_count?: number
+  }
 } 
