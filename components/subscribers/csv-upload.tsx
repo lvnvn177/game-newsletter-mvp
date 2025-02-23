@@ -8,10 +8,10 @@ interface CSVUploadProps {
 }
 
 export function CSVUpload({ onUploadSuccess }: CSVUploadProps) {
-  const [isUploading, setIsUploading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
     if (!file) return
 
     if (file.type !== 'text/csv') {
@@ -20,50 +20,33 @@ export function CSVUpload({ onUploadSuccess }: CSVUploadProps) {
     }
 
     try {
-      setIsUploading(true)
+      setIsLoading(true)
       const text = await file.text()
       const emails = text
         .split('\n')
         .map(line => line.trim())
-        .filter(email => {
-          // 기본적인 이메일 유효성 검사
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-          return emailRegex.test(email)
-        })
+        .filter(email => email && email.includes('@'))
 
-      if (emails.length === 0) {
-        toast.error('유효한 이메일이 없습니다')
-        return
-      }
-
-      if (emails.length > 100) {
-        toast.error('최대 100개의 이메일만 업로드 가능합니다')
-        return
-      }
-
-      // 중복 제거
-      const uniqueEmails = [...new Set(emails)]
-
-      // Supabase에 업로드하는 API 호출
       const response = await fetch('/api/subscribers/bulk', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ emails: uniqueEmails }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emails }),
       })
 
-      if (!response.ok) throw new Error('업로드 실패')
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error)
+      }
 
-      toast.success(`${uniqueEmails.length}개의 이메일이 업로드되었습니다`)
+      toast.success('구독자 목록이 업로드되었습니다')
       onUploadSuccess()
     } catch (err) {
       console.error('CSV upload error:', err)
-      toast.error('CSV 업로드에 실패했습니다')
+      toast.error(err instanceof Error ? err.message : 'CSV 업로드에 실패했습니다')
     } finally {
-      setIsUploading(false)
+      setIsLoading(false)
       // 파일 입력 초기화
-      event.target.value = ''
+      e.target.value = ''
     }
   }
 
@@ -72,19 +55,17 @@ export function CSVUpload({ onUploadSuccess }: CSVUploadProps) {
       <input
         type="file"
         accept=".csv"
-        onChange={handleFileUpload}
-        disabled={isUploading}
-        className="hidden"
-        id="csv-upload"
+        onChange={handleFileChange}
+        disabled={isLoading}
+        className="absolute inset-0 cursor-pointer opacity-0"
       />
-      <label
-        htmlFor="csv-upload"
-        className={`cursor-pointer rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 ${
-          isUploading ? 'opacity-50' : ''
-        }`}
+      <button
+        type="button"
+        disabled={isLoading}
+        className="rounded-lg bg-green-500 px-4 py-2 text-white hover:bg-green-600 disabled:opacity-50"
       >
-        {isUploading ? '업로드 중...' : 'CSV 업로드'}
-      </label>
+        {isLoading ? 'CSV 업로드 중...' : 'CSV 업로드'}
+      </button>
     </div>
   )
 } 
