@@ -56,60 +56,22 @@ export default function EditorPage() {
 
     try {
       setIsSaving(true)
-
-      // 이미지 블록에서 임시 파일이 있는 것들만 필터링
-      const imageBlocks = blocks.filter(
-        block => block.type === 'image' && block.content.tempFile
-      )
-
-      // 모든 이미지 업로드 진행
-      const updatedBlocks = [...blocks]
-      for (const [index, block] of imageBlocks.entries()) {
-        const file = block.content.tempFile as File
-        const fileExt = file.name.split('.').pop()?.toLowerCase()
-        const fileName = `${nanoid()}.${fileExt}`
-        const filePath = `newsletters/${fileName}`
-
-        const { error: uploadError } = await supabase.storage
-          .from('images')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          })
-
-        if (uploadError) throw uploadError
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('images')
-          .getPublicUrl(filePath)
-
-        // 블록 업데이트
-        updatedBlocks[index] = {
-          ...block,
-          content: {
-            imageUrl: publicUrl,
-            tempFile: undefined // 임시 파일 정보 제거
-          }
-        }
-      }
-
-      // newsletter 저장
-      const { data, error: insertError } = await supabase
+      const { data, error } = await supabase
         .from('newsletters')
         .insert({
           title,
-          content: { blocks: updatedBlocks },
-          summary: updatedBlocks.find(b => b.type === 'text')?.content.text?.slice(0, 200) || title,
-          thumbnail_url: updatedBlocks.find(b => b.type === 'image')?.content.imageUrl || '/default-thumbnail.jpg',
-          owner_id: '00000000-0000-0000-0000-000000000000'
+          content: { blocks },
         })
         .select()
         .single()
 
-      if (insertError) throw insertError
-
-      setSavedNewsletterId(data.id)
-      toast.success('저장되었습니다')
+      if (error) throw error
+      
+      if (data) {
+        setSavedNewsletterId(data.id)
+        toast.success('저장되었습니다')
+        router.push(`/admin/newsletters/${data.id}`)
+      }
     } catch (error) {
       console.error('Error saving newsletter:', error)
       toast.error('저장 중 오류가 발생했습니다')

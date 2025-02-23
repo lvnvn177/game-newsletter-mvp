@@ -1,4 +1,4 @@
-import { Navigation } from '@/components/admin/navigation'
+import { Navigation as AdminNavigation } from '@/components/admin/navigation'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 
@@ -15,7 +15,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
+      <AdminNavigation />
       <main className="p-4">{children}</main>
     </div>
   )
