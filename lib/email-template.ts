@@ -48,54 +48,21 @@ export function generateNewsletterHTML(newsletter: Newsletter): string {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${newsletter.title}</title>
       </head>
-      <body style="
-        margin: 0;
-        padding: 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        line-height: 1.6;
-        color: #374151;
-      ">
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="
-            margin-bottom: 20px;
-            font-size: 24px;
-            text-align: center;
-            color: #111827;
-          ">
-            ${newsletter.title}
-          </h1>
-          
-          ${newsletter.summary ? `
-            <p style="
-              color: #6B7280;
-              text-align: center;
-              margin-bottom: 30px;
-            ">
-              ${newsletter.summary}
-            </p>
-          ` : ''}
+          <!-- 헤더 -->
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #333;">${newsletter.title}</h1>
+          </div>
 
-          ${newsletter.content.blocks.map(renderBlock).join('\n')}
+          <!-- 콘텐츠 -->
+          ${newsletter.content.blocks.map(block => renderBlock(block)).join('')}
 
-          <div style="
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #E5E7EB;
-            text-align: center;
-            color: #6B7280;
-            font-size: 14px;
-          ">
-            <p>본 메일은 발신 전용입니다.</p>
-            <p>
-              <a 
-                href="%unsubscribe_url%" 
-                style="color: #6B7280; text-decoration: underline;"
-              >
-                뉴스레터 구독 해제
-              </a>
-            </p>
+          <!-- 푸터 -->
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: #666;">
+            <p>본 메일은 구독자님이 요청하신 뉴스레터입니다.</p>
+            <p>구독 취소는 <a href="{unsubscribe_link}" style="color: #666;">여기</a>를 클릭하세요.</p>
           </div>
         </div>
       </body>

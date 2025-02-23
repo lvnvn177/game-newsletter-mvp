@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { sendEmail } from '@/lib/nodemailer'
+import crypto from 'crypto'
 
 export async function POST(request: Request) {
   try {
@@ -21,18 +23,23 @@ export async function POST(request: Request) {
       )
     }
 
+    // 확인 토큰 생성
+    const confirmToken = crypto.randomBytes(32).toString('hex')
+
     const { error } = await supabase
       .from('subscribers')
       .insert([
         {
           email,
-          owner_id: '00000000-0000-0000-0000-000000000000', // MVP에서는 고정값 사용
+          owner_id: '00000000-0000-0000-0000-000000000000',
+          confirmed: false,
+          confirm_token: confirmToken,
         }
       ])
       .select()
       .single()
 
-    if (error?.code === '23505') { // unique_violation
+    if (error?.code === '23505') {
       return NextResponse.json(
         { error: '이미 구독 중인 이메일입니다' },
         { status: 400 }
@@ -40,6 +47,26 @@ export async function POST(request: Request) {
     }
 
     if (error) throw error
+
+    // 확인 이메일 발송
+    const confirmUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/confirm-subscription?token=${confirmToken}`
+    await sendEmail({
+      to: [email],
+      subject: '뉴스레터 구독 확인',
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+          <h2>뉴스레터 구독 확인</h2>
+          <p>아래 링크를 클릭하여 구독을 확인해주세요:</p>
+          <p>
+            <a href="${confirmUrl}" style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 6px;">
+              구독 확인하기
+            </a>
+          </p>
+          <p>링크가 작동하지 않는 경우 아래 주소를 브라우저에 복사하여 접속해주세요:</p>
+          <p>${confirmUrl}</p>
+        </div>
+      `
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -17,19 +17,18 @@ export interface EmailData {
   from?: string
 }
 
-export async function sendEmail({ to, subject, html, from = process.env.SENDER_EMAIL }: EmailData) {
-  try {
-    const info = await transporter.sendMail({
-      from,
-      to: to.join(', '),
-      subject,
-      html,
-    })
-
-    console.log('Email sent successfully:', info.messageId)
-    return info
-  } catch (error) {
-    console.error('Error sending email:', error)
-    throw error
-  }
+export async function sendEmail({ to, subject, html, from }: EmailData) {
+  return await transporter.sendMail({
+    from: {
+      name: '뉴스레터 서비스명',
+      address: process.env.SENDER_EMAIL
+    },
+    to,
+    subject,
+    html,
+    headers: {
+      'List-Unsubscribe': '<{unsubscribe_link}>',
+      'Precedence': 'bulk'
+    }
+  })
 } 
