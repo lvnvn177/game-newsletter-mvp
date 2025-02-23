@@ -2,9 +2,9 @@
 
 import Image from 'next/image'
 import { useCallback, useState, useEffect } from 'react'
+import { ResizableBox } from 'react-resizable'
 import type { EditorBlock } from '@/types/editor'
-import { supabase } from '@/lib/supabase'
-import { nanoid } from 'nanoid'
+import 'react-resizable/css/styles.css'
 
 interface ImageBlockProps {
   block: EditorBlock
@@ -14,14 +14,75 @@ interface ImageBlockProps {
 export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [tempFile, setTempFile] = useState<File | null>(null)
+  const [aspectRatio, setAspectRatio] = useState(1)
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null)
+  const [dimensions, setDimensions] = useState({
+    width: typeof block.settings.style?.width === 'string' 
+      ? parseInt(block.settings.style.width, 10) 
+      : (block.settings.style?.width as number) || 0,
+    height: typeof block.settings.style?.height === 'string' 
+      ? parseInt(block.settings.style.height, 10) 
+      : (block.settings.style?.height as number) || 0
+  })
+
+  useEffect(() => {
+    if (block.content.imageUrl) {
+      const img = new window.Image()
+      img.src = block.content.imageUrl
+      img.onload = () => {
+        const ratio = img.width / img.height
+        setAspectRatio(ratio)
+        const newDimensions = {
+          width: img.width,
+          height: img.height
+        }
+        setImageDimensions(newDimensions)
+        if (!dimensions.width || !dimensions.height) {
+          setDimensions(newDimensions)
+          onUpdate({
+            ...block,
+            settings: {
+              ...block.settings,
+              style: {
+                ...block.settings.style,
+                width: img.width,
+                height: img.height
+              }
+            }
+          })
+        }
+      }
+    }
+  }, [block.content.imageUrl])
+
+  const handleResize = (e: React.SyntheticEvent, { size }: { size: { width: number; height: number } }) => {
+    const newWidth = Math.round(size.width)
+    const newHeight = Math.round(newWidth / aspectRatio)
+    
+    const newDimensions = {
+      width: newWidth,
+      height: newHeight
+    }
+    
+    setDimensions(newDimensions)
+    onUpdate({
+      ...block,
+      settings: {
+        ...block.settings,
+        style: {
+          ...block.settings.style,
+          width: newDimensions.width,
+          height: newDimensions.height
+        }
+      }
+    })
+  }
 
   const handleImageUpload = useCallback(async (file: File) => {
     try {
       setIsLoading(true)
       setError(null)
 
-      // 파일 크기 체크
       if (file.size > 5 * 1024 * 1024) {
         throw new Error('파일 크기는 5MB 이하여야 합니다')
       }
@@ -31,16 +92,13 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
         throw new Error('지원하지 않는 파일 형식입니다')
       }
 
-      // 임시 URL 생성
       const tempUrl = URL.createObjectURL(file)
-      setTempFile(file)
-
       onUpdate({
         ...block,
         content: { 
           ...block.content, 
           imageUrl: tempUrl,
-          tempFile: file // 임시 파일 정보 저장
+          tempFile: file
         }
       })
     } catch (err) {
@@ -50,15 +108,6 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
       setIsLoading(false)
     }
   }, [block, onUpdate])
-
-  useEffect(() => {
-    // 컴포넌트 언마운트 시 임시 URL 해제
-    return () => {
-      if (block.content.imageUrl?.startsWith('blob:')) {
-        URL.revokeObjectURL(block.content.imageUrl)
-      }
-    }
-  }, [block.content.imageUrl])
 
   return (
     <div className="relative min-h-[200px] w-full" role="region" aria-label="이미지 블록">
@@ -70,14 +119,29 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
       
       {block.content.imageUrl ? (
         <div className="group relative">
-          <Image
-            src={block.content.imageUrl}
-            alt="Newsletter image"
-            width={800}
-            height={400}
-            className="w-full rounded object-cover"
-            style={block.settings.style}
-          />
+          <ResizableBox
+            width={Math.round(dimensions.width)}
+            height={Math.round(dimensions.height)}
+            onResize={handleResize}
+            draggableOpts={{ grid: [10, 10] }}
+            minConstraints={[100, 50]}
+            maxConstraints={[1200, 800]}
+            lockAspectRatio
+          >
+            <div style={{ 
+              width: `${Math.round(dimensions.width)}px`, 
+              height: `${Math.round(dimensions.height)}px`, 
+              position: 'relative' 
+            }}>
+              <Image
+                src={block.content.imageUrl}
+                alt="Newsletter image"
+                className="rounded object-cover"
+                sizes="(max-width: 1200px) 100vw, 1200px"
+                fill
+              />
+            </div>
+          </ResizableBox>
           <button
             onClick={() => {
               const input = document.createElement('input')

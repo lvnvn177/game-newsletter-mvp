@@ -56,11 +56,37 @@ export default function EditorPage() {
 
     try {
       setIsSaving(true)
+      
+      // 블록 데이터 정리
+      const processedBlocks = blocks.map(block => {
+        const { id, ...blockData } = block
+        
+        // 이미지 블록의 경우 style 정보 보존
+        if (block.type === 'image') {
+          return {
+            ...blockData,
+            id: nanoid(),
+            settings: {
+              ...block.settings,
+              style: {
+                width: block.settings.style?.width,
+                height: block.settings.style?.height
+              }
+            }
+          }
+        }
+        
+        return {
+          ...blockData,
+          id: nanoid()
+        }
+      })
+
       const { data, error } = await supabase
         .from('newsletters')
         .insert({
           title,
-          content: { blocks },
+          content: { blocks: processedBlocks },
         })
         .select()
         .single()
