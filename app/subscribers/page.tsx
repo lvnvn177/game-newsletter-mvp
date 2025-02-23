@@ -5,11 +5,13 @@ import { supabase } from '@/lib/supabase'
 import type { Subscriber } from '@/types/database'
 import { toast } from 'react-hot-toast'
 import { CSVUpload } from '@/components/subscribers/csv-upload'
+import { AddSubscriberModal } from '@/components/subscribers/add-subscriber-modal'
 
 export default function SubscribersPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
     fetchSubscribers()
@@ -60,7 +62,15 @@ export default function SubscribersPage() {
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-2xl font-bold">구독자 관리</h1>
-          <CSVUpload onUploadSuccess={fetchSubscribers} />
+          <div className="flex gap-4">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+            >
+              구독자 추가
+            </button>
+            <CSVUpload onUploadSuccess={fetchSubscribers} />
+          </div>
         </div>
 
         <div className="rounded-lg bg-white shadow">
@@ -93,6 +103,11 @@ export default function SubscribersPage() {
           </table>
         </div>
       </div>
+      <AddSubscriberModal 
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={fetchSubscribers}
+      />
     </div>
   )
 } 
