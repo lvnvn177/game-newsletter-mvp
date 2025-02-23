@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { sendEmail } from '@/lib/mailgun'
+import { sendEmail } from '@/lib/nodemailer'
 import { generateNewsletterHTML } from '@/lib/email-template'
 
 export async function POST(
