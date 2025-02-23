@@ -29,10 +29,11 @@ export async function POST(
       )
     }
 
-    // 구독자 목록 조회
+    // 확인된 구독자만 조회
     const { data: subscribers, error: subscribersError } = await supabase
       .from('subscribers')
       .select('email')
+      .eq('confirmed', true)
 
     if (subscribersError) throw subscribersError
     if (!subscribers.length) {
@@ -60,30 +61,29 @@ export async function POST(
     }
 
     // 발송 이력 저장
-    const { error: sendError } = await supabase
+    const { error: sendHistoryError } = await supabase
       .from('newsletter_sends')
-      .insert({
-        newsletter_id: id,
-        sent_at: new Date().toISOString(),
-        status: sendStatus,
-        total_recipients: subscribers.length,
-        error_message: errorMessage,
-        metadata: {
-          success_count: successCount,
-          fail_count: failCount
+      .insert([
+        {
+          newsletter_id: id,
+          status: sendStatus,
+          total_recipients: subscribers.length,
+          metadata: {
+            success_count: successCount,
+            fail_count: failCount,
+          },
+          error_message: errorMessage,
         }
-      })
+      ])
 
-    if (sendError) throw sendError
+    if (sendHistoryError) throw sendHistoryError
 
-    // 발송 결과 응답
     return NextResponse.json({
       success: sendStatus === 'success',
       sentCount: successCount,
       failCount,
-      error: errorMessage
+      error: errorMessage,
     })
-
   } catch (error) {
     console.error('Newsletter sending error:', error)
     return NextResponse.json(

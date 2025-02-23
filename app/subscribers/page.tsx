@@ -2,38 +2,34 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import type { Subscriber } from '@/types/database'
-import { toast } from 'react-hot-toast'
-import { CSVUpload } from '@/components/subscribers/csv-upload'
 import { AddSubscriberModal } from '@/components/subscribers/add-subscriber-modal'
+import { CSVUpload } from '@/components/subscribers/csv-upload'
+import { toast } from 'react-hot-toast'
+
+interface Subscriber {
+  id: string
+  email: string
+  added_at: string
+  confirmed: boolean
+  confirmed_at: string | null
+}
 
 export default function SubscribersPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
-
-  useEffect(() => {
-    fetchSubscribers()
-  }, [])
 
   const fetchSubscribers = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
-      
       const { data, error } = await supabase
         .from('subscribers')
-        .select('*')
+        .select('id, email, added_at, confirmed, confirmed_at')
         .order('added_at', { ascending: false })
 
       if (error) throw error
-      setSubscribers(data || [])
+      if (data) setSubscribers(data)
     } catch (err) {
       console.error('Error fetching subscribers:', err)
-      setError('구독자 목록을 불러오는데 실패했습니다.')
-    } finally {
-      setIsLoading(false)
+      toast.error('구독자 목록을 불러오는데 실패했습니다')
     }
   }
 
@@ -45,8 +41,8 @@ export default function SubscribersPage() {
         .eq('id', id)
 
       if (error) throw error
-      
-      setSubscribers(prev => prev.filter(sub => sub.id !== id))
+
+      setSubscribers(subscribers.filter(sub => sub.id !== id))
       toast.success('구독자가 삭제되었습니다')
     } catch (err) {
       console.error('Error deleting subscriber:', err)
@@ -54,8 +50,9 @@ export default function SubscribersPage() {
     }
   }
 
-  if (isLoading) return <div>로딩중...</div>
-  if (error) return <div className="text-red-500">{error}</div>
+  useEffect(() => {
+    fetchSubscribers()
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -79,6 +76,7 @@ export default function SubscribersPage() {
               <tr className="border-b">
                 <th className="px-6 py-3 text-left">이메일</th>
                 <th className="px-6 py-3 text-left">구독일</th>
+                <th className="px-6 py-3 text-left">상태</th>
                 <th className="px-6 py-3 text-right">작업</th>
               </tr>
             </thead>
@@ -88,6 +86,17 @@ export default function SubscribersPage() {
                   <td className="px-6 py-4">{subscriber.email}</td>
                   <td className="px-6 py-4">
                     {new Date(subscriber.added_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                        subscriber.confirmed
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}
+                    >
+                      {subscriber.confirmed ? '확인됨' : '대기중'}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button

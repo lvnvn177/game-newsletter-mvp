@@ -49,7 +49,9 @@ export async function POST(request: Request) {
     if (error) throw error
 
     // 확인 이메일 발송
-    const confirmUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/confirm-subscription?token=${confirmToken}`
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const confirmUrl = `${baseUrl}/confirm-subscription?token=${confirmToken}`
+    
     await sendEmail({
       to: [email],
       subject: '뉴스레터 구독 확인',
