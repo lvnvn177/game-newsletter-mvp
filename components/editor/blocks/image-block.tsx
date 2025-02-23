@@ -15,6 +15,17 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [aspectRatio, setAspectRatio] = useState(1)
+  const [position, setPosition] = useState(() => {
+    const objectPosition = block.settings.style?.objectPosition
+    if (typeof objectPosition === 'string') {
+      const [x] = objectPosition.split(' ')
+      return { x: x || '50%' }
+    }
+    return { x: '50%' }
+  })
+  const [isDragging, setIsDragging] = useState(false)
+  const [startX, setStartX] = useState(0)
+  const [startPosition, setStartPosition] = useState(0)
   const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null)
   const [dimensions, setDimensions] = useState({
     width: typeof block.settings.style?.width === 'string' 
@@ -109,6 +120,51 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
     }
   }, [block, onUpdate])
 
+  const handleDragStart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+    setStartX(e.clientX)
+    setStartPosition(parseInt(position.x, 10) || 50)
+  }
+
+  const handleDrag = useCallback((e: MouseEvent) => {
+    if (!isDragging) return
+
+    const deltaX = e.clientX - startX
+    const containerWidth = document.querySelector('.image-container')?.clientWidth || 0
+    const percentageDelta = (deltaX / containerWidth) * 100
+    const newPosition = Math.max(0, Math.min(100, startPosition + percentageDelta))
+
+    setPosition({ x: `${newPosition}%` })
+    onUpdate({
+      ...block,
+      settings: {
+        ...block.settings,
+        style: {
+          ...block.settings.style,
+          width: dimensions.width,
+          height: dimensions.height,
+          objectPosition: `${newPosition}% 50%`
+        }
+      }
+    })
+  }, [isDragging, startX, startPosition, block, onUpdate, dimensions])
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+  }
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDrag)
+      window.addEventListener('mouseup', handleDragEnd)
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleDrag)
+      window.removeEventListener('mouseup', handleDragEnd)
+    }
+  }, [isDragging, handleDrag])
+
   return (
     <div className="relative min-h-[200px] w-full" role="region" aria-label="이미지 블록">
       {error && (
@@ -119,6 +175,14 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
       
       {block.content.imageUrl ? (
         <div className="group relative">
+          <div 
+            className="absolute left-0 top-1/2 z-10 h-12 w-2 -translate-y-1/2 cursor-ew-resize rounded bg-blue-500/20 opacity-0 transition-opacity group-hover:opacity-100"
+            onMouseDown={handleDragStart}
+          />
+          <div 
+            className="absolute right-0 top-1/2 z-10 h-12 w-2 -translate-y-1/2 cursor-ew-resize rounded bg-blue-500/20 opacity-0 transition-opacity group-hover:opacity-100"
+            onMouseDown={handleDragStart}
+          />
           <ResizableBox
             width={Math.round(dimensions.width)}
             height={Math.round(dimensions.height)}
@@ -128,18 +192,39 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
             maxConstraints={[1200, 800]}
             lockAspectRatio
           >
-            <div style={{ 
-              width: `${Math.round(dimensions.width)}px`, 
-              height: `${Math.round(dimensions.height)}px`, 
-              position: 'relative' 
-            }}>
-              <Image
-                src={block.content.imageUrl}
-                alt="Newsletter image"
-                className="rounded object-cover"
-                sizes="(max-width: 1200px) 100vw, 1200px"
-                fill
-              />
+            <div className="image-container relative overflow-hidden">
+              <div style={{ 
+                width: `${Math.round(dimensions.width)}px`, 
+                height: `${Math.round(dimensions.height)}px`,
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  width: '200%',
+                  height: '100%',
+                  left: '50%',
+                  transform: `translateX(calc(-50% + ${parseInt(position.x) - 50}%))`,
+                  transition: 'transform 0.2s'
+                }}>
+                  <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                    overflow: 'hidden'
+                  }}>
+                    <Image
+                      src={block.content.imageUrl}
+                      alt="Newsletter image"
+                      className="rounded object-cover"
+                      style={{ objectPosition: '50% 50%' }}
+                      sizes="(max-width: 1200px) 100vw, 1200px"
+                      fill
+                      priority
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </ResizableBox>
           <button
