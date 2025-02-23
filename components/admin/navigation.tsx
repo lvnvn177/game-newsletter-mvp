@@ -8,9 +8,10 @@ export function Navigation() {
   const pathname = usePathname()
 
   const links = [
-    { href: '/', label: '홈' },
-    { href: '/newsletters', label: '뉴스레터' },
-    { href: '/about', label: '소개' },
+    { href: '/admin', label: '대시보드' },
+    { href: '/admin/editor', label: '새 뉴스레터' },
+    { href: '/admin/subscribers', label: '구독자 관리' },
+    { href: '/admin/sends', label: '발송 이력' },
   ]
 
   return (
@@ -31,6 +32,12 @@ export function Navigation() {
               </Link>
             ))}
           </div>
+          <Link 
+            href="/"
+            className="text-sm text-gray-600 hover:text-blue-600"
+          >
+            사이트로 돌아가기
+          </Link>
         </div>
       </div>
     </nav>
