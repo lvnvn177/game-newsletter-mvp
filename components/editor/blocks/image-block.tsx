@@ -44,8 +44,8 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
         const ratio = img.width / img.height
         setAspectRatio(ratio)
         const newDimensions = {
-          width: img.width,
-          height: img.height
+          width: Math.min(img.width, 1200),
+          height: Math.min(img.width, 1200) / ratio
         }
         setImageDimensions(newDimensions)
         if (!dimensions.width || !dimensions.height) {
@@ -56,8 +56,8 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
               ...block.settings,
               style: {
                 ...block.settings.style,
-                width: img.width,
-                height: img.height
+                width: newDimensions.width,
+                height: newDimensions.height
               }
             }
           })
@@ -216,7 +216,7 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
                     <Image
                       src={block.content.imageUrl}
                       alt="Newsletter image"
-                      className="rounded object-cover"
+                      className="rounded object-contain"
                       style={{ objectPosition: '50% 50%' }}
                       sizes="(max-width: 1200px) 100vw, 1200px"
                       fill
