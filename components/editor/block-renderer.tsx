@@ -6,6 +6,7 @@ import type { EditorBlock } from '@/types/editor'
 import { TextBlock } from './blocks/text-block'
 import { ImageBlock } from './blocks/image-block'
 import { ButtonBlock } from './blocks/button-block'
+import { AudioBlock } from './blocks/audio-block'
 
 interface BlockRendererProps {
   block: EditorBlock
@@ -34,6 +35,8 @@ export function BlockRenderer({ block, onUpdate }: BlockRendererProps) {
         return <ImageBlock block={block} onUpdate={onUpdate} />
       case 'button':
         return <ButtonBlock block={block} onUpdate={onUpdate} />
+      case 'audio':
+        return <AudioBlock block={block} onUpdate={onUpdate} />
       default:
         return null
     }

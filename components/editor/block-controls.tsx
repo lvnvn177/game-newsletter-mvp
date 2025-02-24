@@ -13,7 +13,8 @@ export function BlockControls({ onAddBlock }: BlockControlsProps) {
   const blockTypes: Array<{ type: BlockType; label: string }> = [
     { type: 'text', label: '텍스트' },
     { type: 'image', label: '이미지' },
-    { type: 'button', label: '버튼' }
+    { type: 'button', label: '버튼' },
+    { type: 'audio', label: '오디오' }
   ]
 
   return (

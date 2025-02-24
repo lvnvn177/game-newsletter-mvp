@@ -5,6 +5,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { TextBlock } from './blocks/text-block'
 import { ImageBlock } from './blocks/image-block'
 import { ButtonBlock } from './blocks/button-block'
+import { AudioBlock } from './blocks/audio-block'
 import type { EditorBlock } from '@/types/editor'
 
 interface SortableBlockProps {
@@ -36,6 +37,8 @@ export function SortableBlock({ block, onUpdate }: SortableBlockProps) {
         return <ImageBlock block={block} onUpdate={onUpdate} />
       case 'button':
         return <ButtonBlock block={block} onUpdate={onUpdate} />
+      case 'audio':
+        return <AudioBlock block={block} onUpdate={onUpdate} />
       default:
         return null
     }

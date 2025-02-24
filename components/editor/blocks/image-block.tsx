@@ -35,6 +35,7 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
       ? parseInt(block.settings.style.height, 10) 
       : (block.settings.style?.height as number) || 0
   })
+  const [blockPosition, setBlockPosition] = useState({ left: 0, top: 0 })
 
   useEffect(() => {
     if (block.content.imageUrl) {
@@ -128,27 +129,28 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
   }
 
   const handleDrag = useCallback((e: MouseEvent) => {
-    if (!isDragging) return
+    if (!isDragging) return;
 
-    const deltaX = e.clientX - startX
-    const containerWidth = document.querySelector('.image-container')?.clientWidth || 0
-    const percentageDelta = (deltaX / containerWidth) * 100
-    const newPosition = Math.max(0, Math.min(100, startPosition + percentageDelta))
+    const deltaX = e.clientX - startX;
+    const containerWidth = Math.round(dimensions.width);
+    const maxOffset = (containerWidth / 2) - 50; // 최대 이동 범위를 컨테이너의 절반으로 제한
+    const newPositionPercent = Math.max(
+      0, // 최소값을 0으로 설정하여 왼쪽 끝으로 이동
+      Math.min(100, startPosition + (deltaX / (containerWidth / 100))) // 최대값을 100으로 설정하여 오른쪽 끝으로 이동
+    );
 
-    setPosition({ x: `${newPosition}%` })
+    setPosition({ x: `${newPositionPercent}%` });
     onUpdate({
       ...block,
       settings: {
         ...block.settings,
         style: {
           ...block.settings.style,
-          width: dimensions.width,
-          height: dimensions.height,
-          objectPosition: `${newPosition}% 50%`
+          objectPosition: `${newPositionPercent}% 50%`
         }
       }
-    })
-  }, [isDragging, startX, startPosition, block, onUpdate, dimensions])
+    });
+  }, [isDragging, startX, startPosition, block, onUpdate]);
 
   const handleDragEnd = () => {
     setIsDragging(false)
@@ -166,7 +168,11 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
   }, [isDragging, handleDrag])
 
   return (
-    <div className="relative min-h-[200px] w-full" role="region" aria-label="이미지 블록">
+    <div 
+      className="relative min-h-[200px] w-full" 
+      role="region" 
+      aria-label="이미지 블록"
+    >
       {error && (
         <div className="mb-2 text-sm text-red-500" role="alert">
           {error}
@@ -205,7 +211,7 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
                   height: '100%',
                   left: '50%',
                   transform: `translateX(calc(-50% + ${parseInt(position.x) - 50}%))`,
-                  transition: 'transform 0.2s'
+                  transition: isDragging ? 'none' : 'transform 0.2s'
                 }}>
                   <div style={{
                     position: 'relative',
@@ -217,7 +223,9 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
                       src={block.content.imageUrl}
                       alt="Newsletter image"
                       className="rounded object-contain"
-                      style={{ objectPosition: '50% 50%' }}
+                      style={{ 
+                        objectPosition: '50% 50%' 
+                      }}
                       sizes="(max-width: 1200px) 100vw, 1200px"
                       fill
                       priority

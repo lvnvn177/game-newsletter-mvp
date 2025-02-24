@@ -1,4 +1,4 @@
-export type BlockType = 'text' | 'image' | 'button'
+export type BlockType = 'text' | 'image' | 'button' | 'audio'
 
 export type BlockContent = {
   text?: string
@@ -6,6 +6,8 @@ export type BlockContent = {
   buttonText?: string
   buttonUrl?: string
   tempFile?: File
+  audioUrl?: string
+  audioTitle?: string
 }
 
 export interface EditorBlock {

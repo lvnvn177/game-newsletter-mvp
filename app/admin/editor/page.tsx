@@ -61,8 +61,8 @@ export default function EditorPage() {
       const processedBlocks = blocks.map(block => {
         const { id, ...blockData } = block
         
-        // 이미지 블록의 경우 style 정보 보존
-        if (block.type === 'image') {
+        // 이미지나 오디오 블록의 경우 style 정보 보존
+        if (block.type === 'image' || block.type === 'audio') {
           return {
             ...blockData,
             id: nanoid(),
