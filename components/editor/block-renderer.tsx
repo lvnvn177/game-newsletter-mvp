@@ -7,7 +7,6 @@ import { TextBlock } from './blocks/text-block'
 import { ImageBlock } from './blocks/image-block'
 import { ButtonBlock } from './blocks/button-block'
 import { AudioBlock } from './blocks/audio-block'
-
 interface BlockRendererProps {
   block: EditorBlock
   onUpdate: (block: EditorBlock) => void

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import NewsletterCard from '@/components/newsletter-card'
+import NewsletterCard from '@/components/newsletter/newsletter-card'
 import type { Newsletter } from '@/types/database'
 
 type NewsletterListItem = Pick<Newsletter, 'id' | 'title' | 'summary' | 'thumbnail_url' | 'created_at'>

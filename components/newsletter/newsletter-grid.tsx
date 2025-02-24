@@ -1,11 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import NewsletterCard from '@/components/newsletter-card'
-import { handleDelete } from '@/app/utils/deleteNewsletter'
-import type { Newsletter } from '@/types/database'
-
-type NewsletterListItem = Pick<Newsletter, 'id' | 'title' | 'summary' | 'thumbnail_url' | 'created_at'>
+import NewsletterCard from '@/components/newsletter/newsletter-card'
+import { deleteNewsletter } from '@/lib/newsletter'
+import type { NewsletterListItem } from '@/types/database'
 
 interface NewsletterGridProps {
   initialNewsletters: NewsletterListItem[]
@@ -16,11 +14,11 @@ export default function NewsletterGrid({ initialNewsletters }: NewsletterGridPro
 
   const handleDeleteNewsletter = async (id: string) => {
     try {
-      await handleDelete(id)
+      await deleteNewsletter(id)
       setNewsletters(newsletters.filter(n => n.id !== id))
     } catch (err) {
-      console.error('Error deleting newsletter:', err)
-      throw err
+      // 에러 처리는 deleteNewsletter 함수 내에서 처리됨
+      console.error('Error in component:', err)
     }
   }
 

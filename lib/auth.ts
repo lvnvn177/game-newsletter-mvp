@@ -2,14 +2,21 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
 export const auth = async () => {
-  const supabase = createServerComponentClient({ cookies })
-  
   try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+    const cookieStore = cookies()
+    const supabase = createServerComponentClient({ 
+      cookies: () => cookieStore 
+    })
     
-    return session
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) {
+      return null
+    }
+
+    return {
+      user
+    }
   } catch (error) {
     console.error('Auth error:', error)
     return null

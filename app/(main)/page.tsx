@@ -1,4 +1,4 @@
-import { SubscribeForm } from '@/components/subscribe-form'
+import { SubscribeForm } from '@/components/newsletter/subscribe-form'
 import LatestNewslettersGrid from '@/components/newsletter/latest-newsletters-grid'
 
 export default function HomePage() {

@@ -97,16 +97,16 @@ export function SendHistory() {
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  {send.total_recipients}명
+                  {send.recipient_count}명
                 </td>
                 <td className="px-6 py-4">
                   {send.status === 'success' ? (
                     <span className="text-green-600">
-                      성공: {send.metadata?.success_count || 0}명
+                      성공: {send.success_count}명
                     </span>
                   ) : (
                     <span className="text-red-600">
-                      실패: {send.metadata?.fail_count || 0}명
+                      실패: {send.fail_count}명
                       {send.error_message && (
                         <span className="ml-2 text-sm text-gray-500">
                           ({send.error_message})

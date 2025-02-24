@@ -28,12 +28,16 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
   const [startPosition, setStartPosition] = useState(0)
   const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null)
   const [dimensions, setDimensions] = useState({
-    width: typeof block.settings.style?.width === 'string' 
-      ? parseInt(block.settings.style.width, 10) 
-      : (block.settings.style?.width as number) || 0,
-    height: typeof block.settings.style?.height === 'string' 
-      ? parseInt(block.settings.style.height, 10) 
-      : (block.settings.style?.height as number) || 0
+    width: block.settings.style?.width 
+      ? typeof block.settings.style.width === 'string'
+        ? parseInt(block.settings.style.width)
+        : block.settings.style.width
+      : 0,
+    height: block.settings.style?.height
+      ? typeof block.settings.style.height === 'string'
+        ? parseInt(block.settings.style.height)
+        : block.settings.style.height
+      : 0
   })
   const [blockPosition, setBlockPosition] = useState({ left: 0, top: 0 })
 
@@ -83,8 +87,8 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
         ...block.settings,
         style: {
           ...block.settings.style,
-          width: newDimensions.width,
-          height: newDimensions.height
+          width: newDimensions.width.toString(),
+          height: newDimensions.height.toString()
         }
       }
     })
