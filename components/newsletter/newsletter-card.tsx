@@ -4,24 +4,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { deleteNewsletter } from '@/lib/newsletter'
 import type { NewsletterListItem } from '@/types/database'
 
 interface NewsletterCardProps {
   newsletter: NewsletterListItem
-  onDelete: (id: string) => Promise<void>
 }
 
-export default function NewsletterCard({ newsletter, onDelete }: NewsletterCardProps) {
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    try {
-      await onDelete(newsletter.id)
-    } catch (err) {
-      // 에러 처리는 상위 컴포넌트에서 처리됨
-    }
-  }
-
+export default function NewsletterCard({ newsletter }: NewsletterCardProps) {
   return (
     <Link 
       href={`/newsletter/${newsletter.id}`}
@@ -50,12 +39,6 @@ export default function NewsletterCard({ newsletter, onDelete }: NewsletterCardP
           })}
         </time>
       </div>
-      <button
-        onClick={handleDelete}
-        className="absolute right-2 top-2 rounded-full bg-red-500 p-2 text-white opacity-0 transition-opacity group-hover:opacity-100"
-      >
-        삭제
-      </button>
     </Link>
   )
 }
