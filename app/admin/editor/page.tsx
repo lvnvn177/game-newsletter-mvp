@@ -57,20 +57,16 @@ export default function EditorPage() {
     try {
       setIsSaving(true)
       
-      // 이미지 블록들의 이미지를 Supabase Storage에 업로드
+      // 이미지와 오디오 블록들의 파일을 Supabase Storage에 업로드
       const processedBlocks = await Promise.all(blocks.map(async block => {
         const { id, ...blockData } = block
         
         if (block.type === 'image' && block.content.imageUrl) {
           try {
-            // blob: URL에서 Blob 객체 가져오기
             const response = await fetch(block.content.imageUrl)
             const blob = await response.blob()
-            
-            // 파일 이름 생성 (현재 시간 + 랜덤 ID)
             const filename = `newsletters/${Date.now()}-${nanoid()}.${blob.type.split('/')[1]}`
             
-            // Supabase Storage에 업로드 ('images' 버킷의 'newsletters' 폴더에 저장)
             const { data: uploadData, error: uploadError } = await supabase
               .storage
               .from('images')
@@ -78,7 +74,6 @@ export default function EditorPage() {
 
             if (uploadError) throw uploadError
 
-            // Storage URL 생성
             const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${filename}`
 
             return {
@@ -88,17 +83,42 @@ export default function EditorPage() {
                 ...block.content,
                 imageUrl
               },
-              settings: {
-                ...block.settings,
-                style: {
-                  width: block.settings.style?.width,
-                  height: block.settings.style?.height
-                }
-              }
+              settings: block.settings
             }
           } catch (error) {
             console.error('Error uploading image:', error)
             throw new Error('이미지 업로드 중 오류가 발생했습니다')
+          }
+        }
+
+        // 오디오 블록 처리 추가
+        if (block.type === 'audio' && block.content.audioUrl) {
+          try {
+            const response = await fetch(block.content.audioUrl)
+            const blob = await response.blob()
+            const filename = `newsletters/${Date.now()}-${nanoid()}.${blob.type.split('/')[1]}`
+            
+            const { data: uploadData, error: uploadError } = await supabase
+              .storage
+              .from('audios')
+              .upload(filename, blob)
+
+            if (uploadError) throw uploadError
+
+            const audioUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/audios/${filename}`
+
+            return {
+              ...blockData,
+              id: nanoid(),
+              content: {
+                ...block.content,
+                audioUrl
+              },
+              settings: block.settings
+            }
+          } catch (error) {
+            console.error('Error uploading audio:', error)
+            throw new Error('오디오 업로드 중 오류가 발생했습니다')
           }
         }
         
