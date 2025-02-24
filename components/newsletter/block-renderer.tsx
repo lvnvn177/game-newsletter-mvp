@@ -45,6 +45,19 @@ export function NewsletterBlockRenderer({ block }: BlockRendererProps) {
         </div>
       ) : null
 
+    case 'audio':
+      return (
+        <div className="rounded-lg bg-gray-50 p-4">
+          <audio
+            controls
+            className="w-full"
+            src={block.content.audioUrl}
+          >
+            <a href={block.content.audioUrl}>오디오 다운로드</a>
+          </audio>
+        </div>
+      )
+
     default:
       return null
   }
