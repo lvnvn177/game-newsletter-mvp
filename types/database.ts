@@ -1,10 +1,10 @@
+type NewsletterBlockType = 'text' | 'button' | 'image' | 'audio'
+
 export interface NewsletterBlock {
-  type: 'text' | 'image' | 'button'
-  content: any
-  settings: {
-    layout?: string
-    style?: Record<string, string>
-  }
+  id: string
+  type: NewsletterBlockType
+  content: Record<string, any>
+  settings: Record<string, any>
 }
 
 export interface Newsletter {

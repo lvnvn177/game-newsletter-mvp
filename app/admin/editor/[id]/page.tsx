@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast'
 import EditorCanvas from '@/components/editor/editor-canvas'
 import { BlockControls } from '@/components/editor/block-controls'
 import { EditorHistory } from '@/lib/editor-history'
+import { Block, BlockType } from '@/types/editor'
 
 interface EditorPageProps {
   params: { id: string }
@@ -127,16 +128,16 @@ export default function EditNewsletterPage({ params }: EditorPageProps) {
             className="mb-4 w-full rounded-lg border p-2 text-xl"
           />
           <EditorCanvas
-            blocks={newsletter.content.blocks}
+            blocks={newsletter.content.blocks as Block[]}
             onChange={(blocks) => setNewsletter({
               ...newsletter,
-              content: { ...newsletter.content, blocks }
+              content: { ...newsletter.content, blocks: blocks as Newsletter['content']['blocks'] }
             })}
           />
           <div className="mt-4">
             <BlockControls
-              onAddBlock={(type) => {
-                const newBlock = {
+              onAddBlock={(type: BlockType) => {
+                const newBlock: Block = {
                   id: crypto.randomUUID(),
                   type,
                   content: {},
