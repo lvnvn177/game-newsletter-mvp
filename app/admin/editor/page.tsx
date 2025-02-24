@@ -57,22 +57,48 @@ export default function EditorPage() {
     try {
       setIsSaving(true)
       
-      // 블록 데이터 정리
-      const processedBlocks = blocks.map(block => {
+      // 이미지 블록들의 이미지를 Supabase Storage에 업로드
+      const processedBlocks = await Promise.all(blocks.map(async block => {
         const { id, ...blockData } = block
         
-        // 이미지나 오디오 블록의 경우 style 정보 보존
-        if (block.type === 'image' || block.type === 'audio') {
-          return {
-            ...blockData,
-            id: nanoid(),
-            settings: {
-              ...block.settings,
-              style: {
-                width: block.settings.style?.width,
-                height: block.settings.style?.height
+        if (block.type === 'image' && block.content.imageUrl) {
+          try {
+            // blob: URL에서 Blob 객체 가져오기
+            const response = await fetch(block.content.imageUrl)
+            const blob = await response.blob()
+            
+            // 파일 이름 생성 (현재 시간 + 랜덤 ID)
+            const filename = `newsletters/${Date.now()}-${nanoid()}.${blob.type.split('/')[1]}`
+            
+            // Supabase Storage에 업로드 ('images' 버킷의 'newsletters' 폴더에 저장)
+            const { data: uploadData, error: uploadError } = await supabase
+              .storage
+              .from('images')
+              .upload(filename, blob)
+
+            if (uploadError) throw uploadError
+
+            // Storage URL 생성
+            const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${filename}`
+
+            return {
+              ...blockData,
+              id: nanoid(),
+              content: {
+                ...block.content,
+                imageUrl
+              },
+              settings: {
+                ...block.settings,
+                style: {
+                  width: block.settings.style?.width,
+                  height: block.settings.style?.height
+                }
               }
             }
+          } catch (error) {
+            console.error('Error uploading image:', error)
+            throw new Error('이미지 업로드 중 오류가 발생했습니다')
           }
         }
         
@@ -80,13 +106,28 @@ export default function EditorPage() {
           ...blockData,
           id: nanoid()
         }
-      })
+      }))
+
+      // 첫 번째 텍스트 블록의 내용을 요약으로 사용
+      const firstTextBlock = blocks.find(block => block.type === 'text')
+      const summary = firstTextBlock?.content.text?.slice(0, 200) || title
+
+      // 첫 번째 이미지 블록의 URL을 썸네일로 사용
+      const firstImageBlock = processedBlocks.find(block => block.type === 'image')
+      const thumbnailUrl = firstImageBlock?.content.imageUrl
+
+      if (!thumbnailUrl) {
+        toast.error('최소한 하나의 이미지가 필요합니다')
+        return
+      }
 
       const { data, error } = await supabase
         .from('newsletters')
         .insert({
           title,
           content: { blocks: processedBlocks },
+          summary,
+          thumbnail_url: thumbnailUrl
         })
         .select()
         .single()
@@ -96,7 +137,7 @@ export default function EditorPage() {
       if (data) {
         setSavedNewsletterId(data.id)
         toast.success('저장되었습니다')
-        router.push(`/admin/newsletters/${data.id}`)
+        router.push('/admin/newsletters')
       }
     } catch (error) {
       console.error('Error saving newsletter:', error)
