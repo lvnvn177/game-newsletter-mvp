@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+type Params = Promise<{ id: string }>;
+
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Params }
 ) {
   try {
-    const id = await Promise.resolve(params.id)
+    const { id } = await params
 
     // 먼저 뉴스레터 데이터 조회
     const { data: newsletter, error: fetchError } = await supabase

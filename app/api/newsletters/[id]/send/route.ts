@@ -3,12 +3,15 @@ import { supabase } from '@/lib/supabase'
 import { sendEmail } from '@/lib/nodemailer'
 import { generateNewsletterHTML } from '@/lib/email-template'
 
+type Params = Promise<{ id: string }>;
+type Subscriber = { email: string };
+
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Params }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     let sendStatus: 'success' | 'failed' = 'success'
     let errorMessage: string | undefined
     let successCount = 0
@@ -49,7 +52,7 @@ export async function POST(
     try {
       // 이메일 발송
       await sendEmail({
-        to: subscribers.map(sub => sub.email),
+        to: subscribers.map((sub: Subscriber) => sub.email),
         subject: newsletter.title,
         html,
       })
