@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabase'
-import { toast } from 'react-hot-toast'
 
 export async function deleteNewsletter(id: string) {
   try {
@@ -56,10 +55,9 @@ export async function deleteNewsletter(id: string) {
 
     if (deleteError) throw deleteError
 
-    toast.success('뉴스레터가 삭제되었습니다')
+    return { success: true }
   } catch (err) {
     console.error('Error deleting newsletter:', err)
-    toast.error('뉴스레터 삭제에 실패했습니다')
     throw err
   }
 } 

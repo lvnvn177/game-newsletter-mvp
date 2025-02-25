@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import { toast } from 'react-hot-toast'
 import type { Newsletter } from '@/types/database'
+import { deleteNewsletter } from '@/lib/newsletter'
 
 export default function AdminNewslettersPage() {
   const supabase = getSupabaseBrowser()
@@ -37,76 +38,7 @@ export default function AdminNewslettersPage() {
     if (!confirm('정말 삭제하시겠습니까?')) return
 
     try {
-      // 뉴스레터 데이터 조회
-      const { data: newsletter, error: fetchError } = await supabase
-        .from('newsletters')
-        .select('content, thumbnail_url')
-        .eq('id', id)
-        .single()
-
-      if (fetchError) throw fetchError
-
-      // 삭제할 미디어 파일 경로들 수집
-      const imagesToDelete = new Set<string>()
-      const audiosToDelete = new Set<string>()
-
-      // 썸네일 이미지 경로 추가
-      if (newsletter.thumbnail_url) {
-        const thumbnailUrl = new URL(newsletter.thumbnail_url)
-        const pathParts = thumbnailUrl.pathname.split('/')
-        const filename = pathParts[pathParts.length - 1]
-        imagesToDelete.add(`newsletters/${filename}`)
-      }
-
-      // 콘텐츠 내 이미지와 오디오 블록의 파일 경로들 추가
-      const blocks = newsletter.content.blocks || []
-      blocks.forEach((block: any) => {
-        if (block.type === 'image' && block.content.imageUrl) {
-          const imageUrl = new URL(block.content.imageUrl)
-          const pathParts = imageUrl.pathname.split('/')
-          const filename = pathParts[pathParts.length - 1]
-          imagesToDelete.add(`newsletters/${filename}`)
-        }
-        if (block.type === 'audio' && block.content.audioUrl) {
-          const audioUrl = new URL(block.content.audioUrl)
-          const pathParts = audioUrl.pathname.split('/')
-          const filename = pathParts[pathParts.length - 1]
-          audiosToDelete.add(`newsletters/${filename}`)
-        }
-      })
-
-      // Storage에서 이미지 파일들 삭제
-      if (imagesToDelete.size > 0) {
-        const { error: imageDeleteError } = await supabase.storage
-          .from('images')
-          .remove(Array.from(imagesToDelete))
-
-        if (imageDeleteError) {
-          console.error('Image deletion error:', imageDeleteError)
-          throw imageDeleteError
-        }
-      }
-
-      // Storage에서 오디오 파일들 삭제
-      if (audiosToDelete.size > 0) {
-        const { error: audioDeleteError } = await supabase.storage
-          .from('audios')
-          .remove(Array.from(audiosToDelete))
-
-        if (audioDeleteError) {
-          console.error('Audio deletion error:', audioDeleteError)
-          throw audioDeleteError
-        }
-      }
-
-      // 뉴스레터 데이터 삭제
-      const { error: deleteError } = await supabase
-        .from('newsletters')
-        .delete()
-        .eq('id', id)
-
-      if (deleteError) throw deleteError
-
+      await deleteNewsletter(id)
       setNewsletters(newsletters.filter(n => n.id !== id))
       toast.success('뉴스레터가 삭제되었습니다')
     } catch (err) {

@@ -21,6 +21,7 @@ export default function NewsletterCard({ newsletter }: NewsletterCardProps) {
           src={newsletter.thumbnail_url}
           alt={newsletter.title}
           fill
+          priority
           className="object-cover transition-transform group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />

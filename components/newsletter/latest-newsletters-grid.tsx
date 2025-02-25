@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { getSupabaseBrowser } from '@/lib/supabase-browser'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 import NewsletterCard from '@/components/newsletter/newsletter-card'
 import { deleteNewsletter } from '@/lib/newsletter'
 import type { Newsletter } from '@/types/database'
@@ -12,29 +12,27 @@ export default function LatestNewslettersGrid() {
   const [newsletters, setNewsletters] = useState<NewsletterListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const supabase = getSupabaseBrowser()
 
   useEffect(() => {
-    async function fetchNewsletters() {
-      try {
-        const { data, error } = await supabase
-          .from('newsletters')
-          .select('id, title, summary, thumbnail_url, created_at')
-          .order('created_at', { ascending: false })
-          .limit(3)
-
-        if (error) throw error
-        if (data) setNewsletters(data)
-      } catch (err) {
-        console.error('Error fetching newsletters:', err)
-        setError('최신 뉴스레터를 불러오는데 실패했습니다.')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchNewsletters()
+    fetchLatestNewsletters()
   }, [])
+
+  const fetchLatestNewsletters = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('newsletters')
+        .select('id, title, summary, thumbnail_url, created_at')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      if (data) setNewsletters(data)
+    } catch (err) {
+      console.error('Error fetching newsletters:', err)
+      setError('최신 뉴스레터를 불러오는데 실패했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleDeleteNewsletter = async (id: string) => {
     try {
