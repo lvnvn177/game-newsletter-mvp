@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabase'
 import { NewsletterBlockRenderer } from '@/components/newsletter/block-renderer'
 import { ShareButtons } from '@/components/newsletter/share-buttons'
 
+type Params = Promise<{ id: string }>;
+
 interface PageProps {
-  params: {
-    id: string
-  }
+  params: Params
 }
 
 async function getNewsletter(id: string) {
