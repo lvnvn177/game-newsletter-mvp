@@ -28,7 +28,7 @@ export default function NewsletterGrid({ initialNewsletters }: NewsletterGridPro
         <NewsletterCard 
           key={newsletter.id} 
           newsletter={newsletter} 
-          onDelete={handleDeleteNewsletter}
+          // onDelete={handleDeleteNewsletter}
         />
       ))}
     </div>
