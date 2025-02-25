@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-browser'
 import NewsletterCard from '@/components/newsletter/newsletter-card'
 import type { Newsletter } from '@/types/database'
 
@@ -23,9 +23,8 @@ try {
     
     const { data, error } = await supabase
     .from('newsletters')
-    .select('id, title, summary, thumbnail_url, created_at, content')
+    .select('id, title, summary, thumbnail_url, created_at')
     .order('created_at', { ascending: false })
-    .returns<Newsletter[]>()
 
     if (error) throw error
 
@@ -40,16 +39,6 @@ try {
 }
 }
 
-const handleDelete = async (id: string) => {
-try {
-    await handleDelete(id); // 수정된 부분
-    setNewsletters(newsletters.filter(n => n.id !== id));
-} catch (err) {
-    console.error('Error deleting newsletter:', err);
-    // 에러 처리는 NewsletterCard 컴포넌트에서 수행됨
-    throw err;
-}
-}
 
 if (isLoading) {
 return <div>뉴스레터를 불러오는 중...</div>
@@ -68,7 +57,7 @@ return (
     {newsletters.map((newsletter) => (
     <NewsletterCard 
         key={newsletter.id} 
-        newsletter={newsletter} 
+        newsletter={newsletter}
     />
     ))}
 </div>

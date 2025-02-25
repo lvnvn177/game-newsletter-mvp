@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-browser'
+import { AuthChangeEvent } from '@supabase/supabase-js'
 
 interface AuthContextType {
   isAuthenticated: boolean
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     checkAuth()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent) => {
       setIsAuthenticated(event === 'SIGNED_IN')
     })
 
