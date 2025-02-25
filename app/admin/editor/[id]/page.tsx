@@ -11,7 +11,9 @@ import { EditorHistory } from '@/lib/editor-history'
 import { Block, BlockType } from '@/types/editor'
 
 interface EditorPageProps {
-  params: { id: string }
+  params: {
+    id: string
+  }
 }
 
 export default function EditNewsletterPage({ params }: EditorPageProps) {
@@ -22,30 +24,27 @@ export default function EditNewsletterPage({ params }: EditorPageProps) {
   const router = useRouter()
 
   useEffect(() => {
+    const fetchNewsletter = async () => {
+      try {
+        setIsLoading(true)
+        const { data, error } = await supabase
+          .from('newsletters')
+          .select('*')
+          .eq('id', params.id)
+          .single()
+
+        if (error) throw error
+        setNewsletter(data)
+      } catch (err) {
+        console.error('Error fetching newsletter:', err)
+        setError('뉴스레터를 불러오는데 실패했습니다')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     fetchNewsletter()
   }, [params.id])
-
-  const fetchNewsletter = async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-
-      const { data, error } = await supabase
-        .from('newsletters')
-        .select('*')
-        .eq('id', params.id)
-        .single()
-
-      if (error) throw error
-      setNewsletter(data)
-    } catch (err) {
-      console.error('Error fetching newsletter:', err)
-      setError('뉴스레터를 불러오는데 실패했습니다')
-      toast.error('뉴스레터를 불러오는데 실패했습니다')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleSave = async () => {
     if (!newsletter) return
