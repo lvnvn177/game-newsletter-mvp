@@ -79,7 +79,7 @@ export default async function NewsletterPage({ params }: PageProps) {
         {/* 헤더 */}
         <header className="mb-8 text-center">
           <h1 className="mb-4 text-4xl font-bold">{newsletter.title}</h1>
-          <div className="mb-6 text-gray-600">{newsletter.summary}</div>
+          {/* <div className="mb-6 text-gray-600">{newsletter.summary}</div> */}
           <ShareButtons url={currentUrl} title={newsletter.title} />
         </header>
 

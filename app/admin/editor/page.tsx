@@ -14,7 +14,6 @@ import { toast } from 'react-hot-toast'
 export default function EditorPage() {
   const router = useRouter()
   const [blocks, setBlocks] = useState<EditorBlock[]>([])
-  const [title, setTitle] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [history] = useState(() => new EditorHistory())
@@ -48,9 +47,29 @@ export default function EditorPage() {
     history.push(newBlocks)
   }, [history])
 
+  // Extract title from the first heading in text blocks
+  const extractTitle = (): string => {
+    const firstTextBlock = blocks.find(block => block.type === 'text')
+    if (!firstTextBlock || !firstTextBlock.content.text) {
+      return ''
+    }
+
+    // Try to extract title from heading format (# Title)
+    const headingMatch = firstTextBlock.content.text.match(/^#\s+(.+)$/m)
+    if (headingMatch && headingMatch[1]) {
+      return headingMatch[1].replace(/\[게임 제목\]/, '').trim()
+    }
+
+    // If no heading format, use the first line
+    const firstLine = firstTextBlock.content.text.split('\n')[0]
+    return firstLine || ''
+  }
+
   const handleSave = async () => {
+    const title = extractTitle()
+    
     if (!title) {
-      toast.error('제목을 입력해주세요')
+      toast.error('첫 번째 텍스트 블록에 제목(# 형식)을 입력해주세요')
       return
     }
 
@@ -231,14 +250,6 @@ export default function EditorPage() {
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 space-y-4">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="뉴스레터 제목"
-            className="w-full rounded-lg border border-gray-200 p-4 text-2xl"
-          />
-          
           {blocks.length === 0 ? (
             <div className="rounded-lg border border-gray-200 bg-white p-8">
               <h2 className="mb-4 text-xl font-semibold">템플릿 선택</h2>
