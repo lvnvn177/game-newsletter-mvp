@@ -22,6 +22,7 @@ export default function EditNewsletterPage({ params }: EditorPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const router = useRouter()
+  const id = params.id
 
   useEffect(() => {
     const fetchNewsletter = async () => {
@@ -30,7 +31,7 @@ export default function EditNewsletterPage({ params }: EditorPageProps) {
         const { data, error } = await supabase
           .from('newsletters')
           .select('*')
-          .eq('id', params.id)
+          .eq('id', id)
           .single()
 
         if (error) throw error
@@ -44,7 +45,7 @@ export default function EditNewsletterPage({ params }: EditorPageProps) {
     }
 
     fetchNewsletter()
-  }, [params.id])
+  }, [id])
 
   const handleSave = async () => {
     if (!newsletter) return
@@ -60,7 +61,7 @@ export default function EditNewsletterPage({ params }: EditorPageProps) {
           thumbnail_url: newsletter.thumbnail_url,
           updated_at: new Date().toISOString()
         })
-        .eq('id', params.id)
+        .eq('id', id)
 
       if (error) throw error
       toast.success('저장되었습니다')
