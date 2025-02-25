@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSupabaseBrowser } from '@/lib/supabase-browser'
+import { supabase } from '@/lib/supabase-browser'
 import type { Newsletter } from '@/types/database'
 import { toast } from 'react-hot-toast'
 import EditorCanvas from '@/components/editor/editor-canvas'
@@ -15,7 +15,6 @@ interface EditorPageProps {
 }
 
 export default function EditNewsletterPage({ params }: EditorPageProps) {
-  const supabase = getSupabaseBrowser()
   const [newsletter, setNewsletter] = useState<Newsletter | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

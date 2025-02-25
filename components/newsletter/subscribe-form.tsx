@@ -1,13 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { getSupabaseBrowser } from '@/lib/supabase-browser'
+import { supabase } from '@/lib/supabase-browser'
 import { toast } from 'react-hot-toast'
 
 export function SubscribeForm() {
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const supabase = getSupabaseBrowser()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

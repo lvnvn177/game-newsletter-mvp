@@ -7,7 +7,7 @@ import EditorCanvas from '@/components/editor/editor-canvas'
 import { TemplateSelector } from '@/components/editor/template-selector'
 import { BlockControls } from '@/components/editor/block-controls'
 import { EditorHistory } from '@/lib/editor-history'
-import { getSupabaseBrowser } from '@/lib/supabase-browser'
+import { supabase } from '@/lib/supabase-browser'
 import type { EditorBlock, Template, BlockType } from '@/types/editor'
 import { toast } from 'react-hot-toast'
 
@@ -19,9 +19,6 @@ export default function EditorPage() {
   const [isSending, setIsSending] = useState(false)
   const [history] = useState(() => new EditorHistory())
   const [savedNewsletterId, setSavedNewsletterId] = useState<string | null>(null)
-
-  // createBrowserClient 직접 호출 대신 getSupabaseBrowser 사용
-  const supabase = getSupabaseBrowser()
 
   const handleTemplateSelect = useCallback((template: Template) => {
     const newBlocks = template.blocks.map(block => ({

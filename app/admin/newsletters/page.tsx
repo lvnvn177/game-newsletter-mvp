@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { getSupabaseBrowser } from '@/lib/supabase-browser'
+import { supabase } from '@/lib/supabase-browser'
 import { toast } from 'react-hot-toast'
 import type { Newsletter } from '@/types/database'
 import { deleteNewsletter } from '@/lib/newsletter'
 
 export default function AdminNewslettersPage() {
-  const supabase = getSupabaseBrowser()
   const [newsletters, setNewsletters] = useState<Newsletter[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
