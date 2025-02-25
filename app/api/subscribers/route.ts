@@ -6,7 +6,12 @@ import crypto from 'crypto'
 export async function POST(request: Request) {
   try {
     const { email } = await request.json()
-
+    
+    // 요청 헤더에서 호스트 정보 추출
+    const host = request.headers.get('host') || 'localhost:3000'
+    const protocol = host.includes('localhost') ? 'http' : 'https'
+    const baseUrl = `${protocol}://${host}` || process.env.NEXT_PUBLIC_BASE_URL
+    
     if (!email) {
       return NextResponse.json(
         { error: '이메일은 필수입니다' },
@@ -47,9 +52,8 @@ export async function POST(request: Request) {
     }
 
     if (error) throw error
-
+    // baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000
     // 확인 이메일 발송
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     const confirmUrl = `${baseUrl}/confirm-subscription?token=${confirmToken}`
     
     await sendEmail({
