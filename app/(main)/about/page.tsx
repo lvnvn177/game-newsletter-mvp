@@ -1,8 +1,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { SubscribeForm } from '@/components/newsletter/subscribe-form'
 
 export const metadata = {
-  title: '소개 | 뉴스레터',
+  title: '소개 | GameHye',
   description: '게임 뉴스레터 서비스 소개',
 }
 
@@ -12,9 +13,9 @@ export default function AboutPage() {
       {/* 히어로 섹션 */}
       <section className="bg-gray-50 py-20">
         <div className="mx-auto max-w-4xl px-4 text-center">
-          <h1 className="mb-4 text-4xl font-bold">게임 뉴스레터 서비스</h1>
+          <h1 className="mb-4 text-4xl font-bold">GameHye</h1>
           <p className="mb-8 text-xl text-gray-600">
-            매주 엄선된 게임 소식을 이메일로 받아보세요
+            게임 리뷰와 해설이 함께하는 프리미엄 뉴스레터
           </p>
         </div>
       </section>
@@ -24,20 +25,22 @@ export default function AboutPage() {
         <div className="mx-auto max-w-4xl px-4">
           <div className="grid gap-12 md:grid-cols-2">
             <div>
-              <h2 className="mb-4 text-2xl font-bold">우리의 미션</h2>
-              <p className="text-gray-600">
-                게임 업계의 최신 소식, 리뷰, e스포츠 소식을 큐레이션하여
-                제공합니다. 매주 한 번, 꼭 알아야 할 게임 소식을 이메일로
-                전달해드립니다.
-              </p>
+              <h2 className="mb-4 text-2xl font-bold">서비스 특징</h2>
+              <ul className="space-y-4 text-gray-600">
+                <li>• 텍스트, 이미지, 오디오가 결합된 멀티미디어 리뷰</li>
+                <li>• 상세한 게임 분석</li>
+                <li>• 게임 해설 오디오 나레이션 제공</li>
+                <li>• 신작 및 할인 게임 위주의 큐레이션</li>
+              </ul>
             </div>
             <div>
-              <h2 className="mb-4 text-2xl font-bold">구독 혜택</h2>
+              <h2 className="mb-4 text-2xl font-bold">리뷰 구성</h2>
               <ul className="space-y-4 text-gray-600">
-                <li>• 주간 게임 업계 핵심 뉴스</li>
-                <li>• 신작 게임 리뷰 및 프리뷰</li>
-                <li>• e스포츠 대회 소식 및 하이라이트</li>
-                <li>• 독점 개발자 인터뷰</li>
+                <li>• 게임 소개 (장르, 개발사, 출시일)</li>
+                <li>• 스토리 & 설정 분석</li>
+                <li>• 게임플레이 & 시스템 해설</li>
+                <li>• 장단점 및 추천 대상</li>
+                <li>• 주인장의 음성 해설 제공</li>
               </ul>
             </div>
           </div>
@@ -45,18 +48,15 @@ export default function AboutPage() {
       </section>
 
       {/* CTA 섹션 */}
-      <section className="bg-blue-50 py-16">
+      <section className="bg-gray-50 py-16">
         <div className="mx-auto max-w-4xl px-4 text-center">
-          <h2 className="mb-4 text-2xl font-bold">지금 구독하세요</h2>
+          <h2 className="mb-4 text-2xl font-bold">구독 신청하기</h2>
           <p className="mb-8 text-gray-600">
-            매주 새로운 게임 소식을 놓치지 마세요
+            매주 엄선된 게임 리뷰와 주인장의 해설을 받아보세요
           </p>
-          <Link
-            href="/"
-            className="inline-block rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors hover:bg-blue-600"
-          >
-            구독하기
-          </Link>
+          <div className="mx-auto max-w-lg">
+            <SubscribeForm />
+          </div>
         </div>
       </section>
     </div>

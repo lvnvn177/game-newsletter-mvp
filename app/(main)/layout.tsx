@@ -1,4 +1,5 @@
 import { Navigation } from '@/components/navigation'
+import { Footer } from '@/components/footer'
 
 export default function MainLayout({
   children,
@@ -8,7 +9,8 @@ export default function MainLayout({
   return (
     <>
       <Navigation />
-      {children}
+      <main>{children}</main>
+      <Footer />
     </>
   )
 } 

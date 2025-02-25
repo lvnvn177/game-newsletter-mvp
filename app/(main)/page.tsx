@@ -7,7 +7,7 @@ export default function HomePage() {
       {/* 히어로 섹션 */}
       <section className="bg-white py-20">
         <div className="mx-auto max-w-4xl px-4 text-center">
-          <h1 className="mb-4 text-4xl font-bold">뉴스레터 구독하기</h1>
+          <h1 className="mb-4 text-4xl font-bold">GameHye</h1>
           <p className="mb-8 text-xl text-gray-600">
             최신 소식을 이메일로 받아보세요
           </p>
