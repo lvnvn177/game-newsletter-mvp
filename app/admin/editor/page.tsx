@@ -69,7 +69,7 @@ export default function EditorPage() {
     const title = extractTitle()
     
     if (!title) {
-      toast.error('첫 번째 텍스트 블록에 제목(# 형식)을 입력해주세요')
+      toast.success('첫 번째 텍스트 블록에 제목(# 형식)을 입력해주세요')
       return
     }
 
@@ -176,7 +176,7 @@ export default function EditorPage() {
       if (data) {
         setSavedNewsletterId(data.id)
         toast.success('저장되었습니다')
-        router.push('/admin/newsletters')
+        // router.push('/admin/newsletters') - 이 줄을 제거하거나 주석 처리
       }
     } catch (error) {
       console.error('Error saving newsletter:', error)
