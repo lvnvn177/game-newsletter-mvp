@@ -2,8 +2,10 @@ import { supabase } from '@/lib/supabase'
 import EditNewsletterForm from '@/components/admin/edit-newsletter-form'
 import type { Newsletter } from '@/types/database'
 
-export default async function EditNewsletterPage({ params }: { params: { id: string } }) {
-  const id = params.id
+type Params = Promise<{ id: string }>;
+
+export default async function EditNewsletterPage({ params }: { params: Params }) {
+  const { id } = await params;
   
   // 서버에서 데이터 가져오기
   const { data, error } = await supabase
