@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase-browser'
 import { toast } from 'react-hot-toast'
 
 export function SubscribeForm() {
@@ -14,17 +13,23 @@ export function SubscribeForm() {
 
     try {
       setIsLoading(true)
-      const { error } = await supabase
-        .from('subscribers')
-        .insert([{ email }])
+      
+      const response = await fetch('/api/subscribers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error)
+      }
 
       toast.success('구독 신청이 완료되었습니다!')
       setEmail('')
     } catch (err) {
       console.error('Error subscribing:', err)
-      toast.error('구독 신청에 실패했습니다.')
+      toast.error(err instanceof Error ? err.message : '구독 신청에 실패했습니다.')
     } finally {
       setIsLoading(false)
     }
