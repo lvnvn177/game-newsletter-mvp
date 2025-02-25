@@ -6,6 +6,7 @@ import { ShareButtons } from '@/components/newsletter/share-buttons'
 
 type Params = Promise<{ id: string }>;
 
+// 타입
 interface PageProps {
   params: Params
 }
