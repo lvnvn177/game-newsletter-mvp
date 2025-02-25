@@ -23,7 +23,7 @@ export function generateNewsletterHTML(newsletter: Newsletter): string {
     <body>
       <h1>${newsletter.title}</h1>
   `;
-  
+  // test
   // 각 블록 타입에 따라 HTML 생성
   blocks.forEach(block => {
     switch (block.type) {
