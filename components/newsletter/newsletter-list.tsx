@@ -69,7 +69,6 @@ return (
     <NewsletterCard 
         key={newsletter.id} 
         newsletter={newsletter} 
-        onDelete={handleDelete}
     />
     ))}
 </div>
