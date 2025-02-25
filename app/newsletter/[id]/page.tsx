@@ -59,6 +59,16 @@ export default async function NewsletterPage({ params }: PageProps) {
     notFound();
   }
 
+  // 첫 번째 텍스트 블록이 제목과 동일한 경우 필터링
+  const contentBlocks = newsletter.content.blocks.filter((block: any, index: number) => {
+    // 첫 번째 텍스트 블록이고 내용이 제목과 동일한 경우 제외
+    if (index === 0 && block.type === 'text' && block.content.text) {
+      const cleanText = block.content.text.replace(/^#\s+/, '').trim(); // # 기호와 공백 제거
+      return cleanText !== newsletter.title; // 제목과 일치하면 false 반환(필터링)
+    }
+    return true;
+  });
+
   const currentUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/newsletter/${id}`;
 
   return (
@@ -85,7 +95,7 @@ export default async function NewsletterPage({ params }: PageProps) {
 
         {/* 콘텐츠 */}
         <div className="space-y-8">
-          {newsletter.content.blocks.map((block: any, index: number) => (
+          {contentBlocks.map((block: any, index: number) => (
             <NewsletterBlockRenderer key={`${block.id}-${index}`} block={block} />
           ))}
         </div>
