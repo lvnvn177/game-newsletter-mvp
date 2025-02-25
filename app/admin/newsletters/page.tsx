@@ -92,4 +92,6 @@ export default function AdminNewslettersPage() {
       </div>
     </div>
   )
-} 
+}
+
+export const dynamic = 'force-dynamic' 

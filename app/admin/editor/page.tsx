@@ -298,4 +298,6 @@ export default function EditorPage() {
       </div>
     </div>
   )
-} 
+}
+
+export const dynamic = 'force-dynamic' 

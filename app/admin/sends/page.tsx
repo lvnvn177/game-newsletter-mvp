@@ -1,6 +1,8 @@
 import { Suspense } from 'react'
 import { SendHistory } from '@/components/sends/send-history'
 
+export const dynamic = 'force-dynamic'
+
 export default function SendsPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">

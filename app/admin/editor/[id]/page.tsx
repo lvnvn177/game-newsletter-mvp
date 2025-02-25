@@ -23,4 +23,6 @@ export default async function EditNewsletterPage({ params }: { params: Params })
   }
   
   return <EditNewsletterForm newsletter={data as Newsletter} />
-} 
+}
+
+export const dynamic = 'force-dynamic' 
