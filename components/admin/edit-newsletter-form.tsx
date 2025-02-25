@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast'
 import EditorCanvas from '@/components/editor/editor-canvas'
 import { BlockControls } from '@/components/editor/block-controls'
 import { EditorHistory } from '@/lib/editor-history'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import type { EditorBlock, BlockType } from '@/types/editor'
 import type { Newsletter } from '@/types/database'
 
@@ -17,6 +17,7 @@ interface EditNewsletterFormProps {
 
 export default function EditNewsletterForm({ newsletter }: EditNewsletterFormProps) {
   const router = useRouter()
+  const supabase = getSupabaseBrowser()
   const [blocks, setBlocks] = useState<EditorBlock[]>(
     newsletter.content.blocks.map(block => ({
       ...block,
