@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import type { EditorBlock } from '@/types/editor'
+import { supabase } from '@/lib/supabase-browser'
+import { nanoid } from 'nanoid'
 
 // 클라이언트 사이드에서만 로드하기 위해 dynamic import 사용
 const MDEditor = dynamic(
@@ -25,6 +27,7 @@ export function TextBlock({ block, onUpdate }: TextBlockProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [value, setValue] = useState(block.content.text || '')
   const containerRef = useRef<HTMLDivElement>(null)
+  const [isUploading, setIsUploading] = useState(false)
 
   // 외부 클릭 감지를 위한 이벤트 핸들러
   useEffect(() => {
@@ -94,6 +97,41 @@ export function TextBlock({ block, onUpdate }: TextBlockProps) {
     })
   }
 
+  // 이미지 업로드 핸들러 (마크다운 에디터에서 이미지 삽입 시 호출)
+  const handleImageUpload = async (file: File): Promise<string> => {
+    try {
+      setIsUploading(true)
+      
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('파일 크기는 5MB 이하여야 합니다')
+      }
+
+      const fileExt = file.name.split('.').pop()?.toLowerCase()
+      if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt || '')) {
+        throw new Error('지원하지 않는 파일 형식입니다')
+      }
+
+      // Supabase Storage에 이미지 업로드
+      const filename = `newsletters/${Date.now()}-${nanoid()}.${fileExt}`
+      
+      const { data, error } = await supabase
+        .storage
+        .from('images')
+        .upload(filename, file)
+
+      if (error) throw error
+
+      // 업로드된 이미지의 공개 URL 생성
+      const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${filename}`
+      return imageUrl
+    } catch (error) {
+      console.error('이미지 업로드 오류:', error)
+      throw new Error('이미지 업로드에 실패했습니다')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   if (isEditing) {
     return (
       <div 
@@ -108,14 +146,15 @@ export function TextBlock({ block, onUpdate }: TextBlockProps) {
           preview="edit"
           height={300}
           style={{ ...block.settings.style }}
-          // onBlur 이벤트 제거 - 이것이 문제를 일으킬 수 있음
+          // 이미지 업로드 핸들러는 별도 구현 필요
         />
         <div className="mt-2 flex justify-end">
           <button
             onClick={handleSave}
             className="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600"
+            disabled={isUploading}
           >
-            완료
+            {isUploading ? '이미지 업로드 중...' : '완료'}
           </button>
         </div>
       </div>

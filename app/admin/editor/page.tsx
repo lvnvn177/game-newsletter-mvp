@@ -197,56 +197,54 @@ export default function EditorPage() {
     try {
       setIsSending(true)
       
-      const response = await fetch(`/api/newsletters/${newsletterId}/send`, {
-        method: 'POST',
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || '발송에 실패했습니다')
-      }
-
-      const result = await response.json()
+      // 뉴스레터 데이터 가져오기
+      const { data: newsletter, error: fetchError } = await supabase
+        .from('newsletters')
+        .select('*')
+        .eq('id', newsletterId)
+        .single()
       
-      if (result.success) {
-        toast.success(
-          `발송 완료: ${result.sentCount}명의 구독자에게 성공적으로 발송되었습니다!`, {
-          duration: 5000,
-          icon: '📨'
-        })
-        
-        // 발송 성공 후 뉴스레터 목록 페이지로 이동 옵션 제공
-        // action 대신 별도의 toast로 처리
-        toast((t) => (
-          <div>
-            <span>뉴스레터 목록으로 이동하시겠습니까?</span>
-            <button
-              className="ml-2 rounded bg-blue-500 px-2 py-1 text-xs text-white"
-              onClick={() => {
-                toast.dismiss(t.id);
-                router.push('/admin/newsletters');
-              }}
-            >
-              이동
-            </button>
-          </div>
-        ), {
-          duration: 8000,
-        });
-      } else {
-        toast.error(
-          `발송 실패: ${result.failCount}명 발송 실패. ${result.error || ''}`, {
-          duration: 5000,
-          icon: '⚠️'
+      if (fetchError) throw fetchError
+      
+      // 마크다운 이미지 URL 추출 및 처리
+      const processedNewsletter = { ...newsletter }
+      
+      // 텍스트 블록에서 마크다운 이미지 URL 추출
+      if (processedNewsletter.content && processedNewsletter.content.blocks) {
+        processedNewsletter.content.blocks = processedNewsletter.content.blocks.map((block: any) => {
+          if (block.type === 'text' && block.content.text) {
+            // 마크다운 이미지 URL 추출 (![alt](url) 형식)
+            const imgRegex = /!\[.*?\]\((.*?)\)/g
+            const matches = [...block.content.text.matchAll(imgRegex)]
+            
+            // 이미지 URL이 있으면 별도의 이미지 블록으로 추가
+            if (matches.length > 0) {
+              // 텍스트에서 이미지 마크다운 제거 (옵션)
+              // block.content.text = block.content.text.replace(imgRegex, '');
+            }
+          }
+          return block
         })
       }
-    } catch (err) {
-      console.error('Error sending newsletter:', err)
-      toast.error(
-        err instanceof Error ? err.message : '발송에 실패했습니다. 다시 시도해주세요.', {
-        duration: 5000,
-        icon: '❌'
+      
+      // 이메일 발송 API 호출
+      const response = await fetch('/api/send-newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newsletterId }),
       })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || '뉴스레터 발송에 실패했습니다')
+      }
+      
+      toast.success('뉴스레터가 성공적으로 발송되었습니다')
+    } catch (error) {
+      console.error('뉴스레터 발송 오류:', error)
+      toast.error(error instanceof Error ? error.message : '뉴스레터 발송에 실패했습니다')
     } finally {
       setIsSending(false)
     }
