@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { NewsletterBlockRenderer } from '@/components/newsletter/block-renderer'
 import { ShareButtons } from '@/components/newsletter/share-buttons'
+import { SubscribeForm } from '@/components/newsletter/subscribe-form'
 
 type Params = Promise<{ id: string }>;
 
@@ -107,7 +108,9 @@ export default async function NewsletterPage({ params }: PageProps) {
           <p className="mb-6 text-gray-600">
             매주 새로운 게임 소식을 이메일로 받아보세요.
           </p>
-          {/* 구독 폼은 추후 구현 */}
+          <div className="mx-auto max-w-md">
+            <SubscribeForm />
+          </div>
         </div>
       </div>
     </article>
