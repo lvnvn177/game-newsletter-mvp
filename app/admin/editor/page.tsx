@@ -82,7 +82,15 @@ export default function EditorPage() {
       return
     }
     
-    // 텍스트 블록 추가
+    // 오디오 블록 추가 (먼저 추가)
+    const audioBlock: EditorBlock = {
+      id: nanoid(),
+      type: 'audio',
+      content: {},
+      settings: {}
+    }
+    
+    // 텍스트 블록 추가 (두 번째로 추가)
     const textBlock: EditorBlock = {
       id: nanoid(),
       type: 'text',
@@ -96,17 +104,8 @@ export default function EditorPage() {
       }
     }
     
-    // 오디오 블록 추가
-    const audioBlock: EditorBlock = {
-      id: nanoid(),
-      type: 'audio',
-      content: {},
-      settings: {}
-    }
-    
-    // 기존 썸네일 블록과 함께 새 블록들 설정
-    const thumbnailBlock = blocks[0]
-    const newBlocks = [thumbnailBlock, textBlock, audioBlock]
+    // 오디오 블록과 텍스트 블록만 설정 (썸네일 블록은 제외)
+    const newBlocks = [audioBlock, textBlock]
     
     setBlocks(newBlocks)
     history.push(newBlocks)
@@ -435,7 +434,7 @@ export default function EditorPage() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <BlockControls onAddBlock={handleAddBlock} />
+          <h2 className="text-xl font-semibold">뉴스레터 본문 작성</h2>
           <div className="space-x-2">
             <button
               onClick={handleUndo}
