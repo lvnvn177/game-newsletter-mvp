@@ -71,9 +71,19 @@ export function generateNewsletterHTML(newsletter: Newsletter): string {
       case 'image':
         if (block.content.imageUrl) {
           const caption = block.content.caption || '';
+          // 이미지 설정에서 너비와 정렬 값을 가져옴
+          const width = block.settings?.width || '100%';
+          const alignment = block.settings?.alignment || 'center';
+          
+          // 정렬에 따른 스타일 설정
+          let alignStyle = 'margin: 0 auto;'; // 기본값 (가운데 정렬)
+          if (alignment === 'left') alignStyle = 'margin-right: auto;';
+          if (alignment === 'right') alignStyle = 'margin-left: auto;';
+          
           html += `
-            <div style="margin: 15px 0;">
-              <img src="${block.content.imageUrl}" alt="${caption}" style="display: block; max-width: 100%; height: auto; border-radius: 4px;">
+            <div style="margin: 15px 0; text-align: ${alignment};">
+              <img src="${block.content.imageUrl}" alt="${caption}" 
+                style="display: block; width: ${width}; max-width: 100%; height: auto; border-radius: 4px; ${alignStyle}">
               ${caption ? `<div style="text-align: center; font-size: 14px; color: #666; margin-top: 5px;">${caption}</div>` : ''}
             </div>
           `;
