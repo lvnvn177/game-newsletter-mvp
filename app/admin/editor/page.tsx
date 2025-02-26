@@ -233,7 +233,10 @@ export default function EditorPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ newsletterId }),
+        body: JSON.stringify({ 
+          newsletterId,
+          newsletter: processedNewsletter // 처리된 뉴스레터 데이터 전송
+        }),
       })
       
       if (!response.ok) {
@@ -242,6 +245,9 @@ export default function EditorPage() {
       }
       
       toast.success('뉴스레터가 성공적으로 발송되었습니다')
+      
+      // 발송 성공 후 관리자 대시보드로 리다이렉트 (선택사항)
+      router.push('/admin/newsletters')
     } catch (error) {
       console.error('뉴스레터 발송 오류:', error)
       toast.error(error instanceof Error ? error.message : '뉴스레터 발송에 실패했습니다')
