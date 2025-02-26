@@ -20,6 +20,7 @@ export default function EditorPage() {
   const [savedNewsletterId, setSavedNewsletterId] = useState<string | null>(null)
   const [step, setStep] = useState<'thumbnail' | 'content'>('thumbnail')
   const [title, setTitle] = useState('')
+  const [summary, setSummary] = useState('')
   const [thumbnailUrl, setThumbnailUrl] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -82,6 +83,11 @@ export default function EditorPage() {
       return
     }
     
+    if (!summary.trim()) {
+      toast.error('요약을 입력해주세요')
+      return
+    }
+    
     // 오디오 블록 추가 (먼저 추가)
     const audioBlock: EditorBlock = {
       id: nanoid(),
@@ -90,22 +96,7 @@ export default function EditorPage() {
       settings: {}
     }
     
-    // 요약 블록 추가 (두 번째로 추가)
-    const summaryBlock: EditorBlock = {
-      id: nanoid(),
-      type: 'text',
-      content: {
-        text: `## 요약\n\n뉴스레터 카드에 표시될 요약을 작성하세요. (최대 200자)`
-      },
-      settings: {
-        style: {
-          lineHeight: '1.6',
-          marginBottom: '20px'
-        }
-      }
-    }
-    
-    // 텍스트 블록 추가 (세 번째로 추가)
+    // 텍스트 블록 추가 (두 번째로 추가)
     const textBlock: EditorBlock = {
       id: nanoid(),
       type: 'text',
@@ -119,8 +110,8 @@ export default function EditorPage() {
       }
     }
     
-    // 오디오 블록, 요약 블록, 텍스트 블록 순서로 설정
-    const newBlocks = [audioBlock, summaryBlock, textBlock]
+    // 오디오 블록과 텍스트 블록만 설정
+    const newBlocks = [audioBlock, textBlock]
     
     setBlocks(newBlocks)
     history.push(newBlocks)
@@ -159,6 +150,11 @@ export default function EditorPage() {
   const handleSave = async () => {
     if (!title.trim()) {
       toast.error('제목을 입력해주세요')
+      return
+    }
+    
+    if (!summary.trim()) {
+      toast.error('요약을 입력해주세요')
       return
     }
     
@@ -385,6 +381,21 @@ export default function EditorPage() {
         </div>
         
         <div className="mb-6">
+          <label htmlFor="summary" className="mb-2 block text-sm font-medium text-gray-700">
+            요약 (최대 200자)
+          </label>
+          <textarea
+            id="summary"
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            placeholder="뉴스레터 카드에 표시될 요약을 작성하세요"
+            className="w-full rounded-lg border border-gray-300 p-3 text-base"
+            rows={3}
+            maxLength={200}
+          />
+        </div>
+        
+        <div className="mb-6">
           <label className="mb-2 block text-sm font-medium text-gray-700">
             썸네일 이미지
           </label>
@@ -396,13 +407,13 @@ export default function EditorPage() {
           )}
           
           {thumbnailUrl ? (
-            <div className="group relative rounded-lg border border-gray-200 p-4">
-              <div className="relative h-[300px] w-full">
+            <div className="group relative rounded-lg border border-gray-200 p-2">
+              <div className="relative h-[300px] w-full overflow-hidden rounded">
                 <Image
                   src={thumbnailUrl}
                   alt="썸네일 이미지"
                   fill
-                  className="rounded-lg object-cover"
+                  className="object-cover"
                 />
               </div>
               <button
@@ -416,7 +427,7 @@ export default function EditorPage() {
                   }
                   input.click()
                 }}
-                className="absolute right-6 top-6 rounded bg-white/80 px-3 py-1 text-sm hover:bg-white"
+                className="absolute right-4 top-4 rounded bg-white/80 px-3 py-1 text-sm hover:bg-white"
                 disabled={isUploading}
               >
                 {isUploading ? '업로드 중...' : '변경'}
