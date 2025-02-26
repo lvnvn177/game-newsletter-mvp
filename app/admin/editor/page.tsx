@@ -4,12 +4,12 @@ import { useState, useCallback, useEffect } from 'react'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 import EditorCanvas from '@/components/editor/editor-canvas'
-import { TemplateSelector } from '@/components/editor/template-selector'
 import { BlockControls } from '@/components/editor/block-controls'
 import { EditorHistory } from '@/lib/editor-history'
 import { supabase } from '@/lib/supabase-browser'
-import type { EditorBlock, Template, BlockType } from '@/types/editor'
+import type { EditorBlock, BlockType } from '@/types/editor'
 import { toast } from 'react-hot-toast'
+import Image from 'next/image'
 
 export default function EditorPage() {
   const router = useRouter()
@@ -18,60 +18,145 @@ export default function EditorPage() {
   const [isSending, setIsSending] = useState(false)
   const [history] = useState(() => new EditorHistory())
   const [savedNewsletterId, setSavedNewsletterId] = useState<string | null>(null)
+  const [step, setStep] = useState<'thumbnail' | 'content'>('thumbnail')
+  const [title, setTitle] = useState('')
+  const [thumbnailUrl, setThumbnailUrl] = useState('')
+  const [isUploading, setIsUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleTemplateSelect = useCallback((template: Template) => {
-    const newBlocks = template.blocks.map(block => ({
-      ...block,
-      id: nanoid() // 새로운 ID 생성
-    }))
+  // 썸네일 이미지 업로드 처리
+  const handleThumbnailUpload = async (file: File) => {
+    try {
+      setIsUploading(true)
+      setError(null)
+
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('파일 크기는 5MB 이하여야 합니다')
+      }
+
+      const fileExt = file.name.split('.').pop()?.toLowerCase()
+      if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt || '')) {
+        throw new Error('지원하지 않는 파일 형식입니다')
+      }
+
+      const tempUrl = URL.createObjectURL(file)
+      setThumbnailUrl(tempUrl)
+      
+      // 썸네일 이미지 블록 생성
+      const thumbnailBlock: EditorBlock = {
+        id: nanoid(),
+        type: 'image',
+        content: {
+          imageUrl: tempUrl,
+          tempFile: file
+        },
+        settings: {
+          style: {
+            width: '100%',
+            marginBottom: '20px'
+          }
+        }
+      }
+      
+      // 썸네일 블록을 blocks에 추가
+      setBlocks([thumbnailBlock])
+      history.push([thumbnailBlock])
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '이미지 업로드 실패'
+      setError(errorMessage)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  // 다음 단계로 이동
+  const handleNextStep = () => {
+    if (!thumbnailUrl) {
+      toast.error('썸네일 이미지를 업로드해주세요')
+      return
+    }
+    
+    if (!title.trim()) {
+      toast.error('제목을 입력해주세요')
+      return
+    }
+    
+    // 텍스트 블록 추가
+    const textBlock: EditorBlock = {
+      id: nanoid(),
+      type: 'text',
+      content: {
+        text: `# ${title}\n\n여기에 본문을 작성하세요.`
+      },
+      settings: {
+        style: {
+          lineHeight: '1.6'
+        }
+      }
+    }
+    
+    // 오디오 블록 추가
+    const audioBlock: EditorBlock = {
+      id: nanoid(),
+      type: 'audio',
+      content: {},
+      settings: {}
+    }
+    
+    // 기존 썸네일 블록과 함께 새 블록들 설정
+    const thumbnailBlock = blocks[0]
+    const newBlocks = [thumbnailBlock, textBlock, audioBlock]
+    
     setBlocks(newBlocks)
     history.push(newBlocks)
-  }, [history])
+    setStep('content')
+  }
 
   const handleAddBlock = useCallback((type: BlockType) => {
+    // 썸네일 단계에서는 블록 추가 불가
+    if (step === 'thumbnail') return
+    
+    // 이미지 블록은 이미 썸네일로 추가되었으므로 추가 불가
+    if (type === 'image') {
+      toast.error('이미지 블록은 썸네일로 이미 추가되었습니다')
+      return
+    }
+    
     const newBlock: EditorBlock = {
       id: nanoid(),
       type,
       content: {},
       settings: {}
     }
+    
     setBlocks(prev => {
       const newBlocks = [...prev, newBlock]
       history.push(newBlocks)
       return newBlocks
     })
-  }, [history])
+  }, [history, step])
 
   const handleBlocksChange = useCallback((newBlocks: EditorBlock[]) => {
     setBlocks(newBlocks)
     history.push(newBlocks)
   }, [history])
 
-  // Extract title from the first heading in text blocks
-  const extractTitle = (): string => {
-    const firstTextBlock = blocks.find(block => block.type === 'text')
-    if (!firstTextBlock || !firstTextBlock.content.text) {
-      return ''
-    }
-
-    // Try to extract title from heading format (# Title)
-    const headingMatch = firstTextBlock.content.text.match(/^#\s+(.+)$/m)
-    if (headingMatch && headingMatch[1]) {
-      return headingMatch[1].replace(/\[게임 제목\]/, '').trim()
-    }
-
-    // If no heading format, use the first line
-    const firstLine = firstTextBlock.content.text.split('\n')[0]
-    return firstLine || ''
-  }
-
   const handleSave = async () => {
-    const title = extractTitle()
+    if (!thumbnailUrl) {
+      toast.error('썸네일 이미지를 업로드해주세요')
+      return
+    }
     
-    if (!title) {
-      toast.error('첫 번째 텍스트 블록에 제목(# 형식)을 입력해주세요', {
-        duration: 4000 // 4초 동안 표시
-      })
+    if (!title.trim()) {
+      toast.error('제목을 입력해주세요')
+      return
+    }
+    
+    // 본문 텍스트 블록 확인
+    const textBlock = blocks.find(block => block.type === 'text')
+    if (!textBlock || !textBlock.content.text) {
+      toast.error('본문을 작성해주세요')
       return
     }
 
@@ -149,16 +234,16 @@ export default function EditorPage() {
         }
       }))
 
-      // 첫 번째 텍스트 블록의 내용을 요약으로 사용
-      const firstTextBlock = blocks.find(block => block.type === 'text')
-      const summary = firstTextBlock?.content.text?.slice(0, 200) || title
+      // 텍스트 블록의 내용을 요약으로 사용
+      const textBlockContent = textBlock?.content.text || ''
+      const summary = textBlockContent.slice(0, 200) || title
 
       // 첫 번째 이미지 블록의 URL을 썸네일로 사용
       const firstImageBlock = processedBlocks.find(block => block.type === 'image')
-      const thumbnailUrl = firstImageBlock?.content.imageUrl
+      const processedThumbnailUrl = firstImageBlock?.content.imageUrl
 
-      if (!thumbnailUrl) {
-        toast.error('최소한 하나의 이미지가 필요합니다')
+      if (!processedThumbnailUrl) {
+        toast.error('썸네일 이미지 처리 중 오류가 발생했습니다')
         return
       }
 
@@ -168,7 +253,7 @@ export default function EditorPage() {
           title,
           content: { blocks: processedBlocks },
           summary,
-          thumbnail_url: thumbnailUrl
+          thumbnail_url: processedThumbnailUrl
         })
         .select()
         .single()
@@ -178,14 +263,14 @@ export default function EditorPage() {
       if (data) {
         setSavedNewsletterId(data.id)
         toast.success('뉴스레터가 성공적으로 저장되었습니다. 이제 발송하거나 계속 편집할 수 있습니다.', {
-          duration: 5000, // 5초 동안 표시
+          duration: 5000,
           icon: '✅'
         })
       }
     } catch (error) {
       console.error('Error saving newsletter:', error)
       toast.error('저장 중 오류가 발생했습니다. 다시 시도해주세요.', {
-        duration: 5000, // 5초 동안 표시
+        duration: 5000,
         icon: '❌'
       })
     } finally {
@@ -197,7 +282,6 @@ export default function EditorPage() {
     try {
       setIsSending(true)
       
-      // 올바른 API 엔드포인트로 수정
       const response = await fetch(`/api/newsletters/${newsletterId}/send`, {
         method: 'POST',
         headers: {
@@ -250,54 +334,150 @@ export default function EditorPage() {
     return () => document.removeEventListener('keydown', handleKeyboard)
   }, [handleUndo, handleRedo])
 
+  // 썸네일 단계 렌더링
+  const renderThumbnailStep = () => {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-8">
+        <h2 className="mb-6 text-xl font-semibold">뉴스레터 기본 정보</h2>
+        
+        <div className="mb-6">
+          <label htmlFor="title" className="mb-2 block text-sm font-medium text-gray-700">
+            제목
+          </label>
+          <input
+            id="title"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="뉴스레터 제목을 입력하세요"
+            className="w-full rounded-lg border border-gray-300 p-3 text-lg"
+          />
+        </div>
+        
+        <div className="mb-6">
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            썸네일 이미지
+          </label>
+          
+          {error && (
+            <div className="mb-2 text-sm text-red-500" role="alert">
+              {error}
+            </div>
+          )}
+          
+          {thumbnailUrl ? (
+            <div className="group relative rounded-lg border border-gray-200 p-4">
+              <div className="relative h-[300px] w-full">
+                <Image
+                  src={thumbnailUrl}
+                  alt="썸네일 이미지"
+                  fill
+                  className="rounded-lg object-cover"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  const input = document.createElement('input')
+                  input.type = 'file'
+                  input.accept = 'image/*'
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0]
+                    if (file) handleThumbnailUpload(file)
+                  }
+                  input.click()
+                }}
+                className="absolute right-6 top-6 rounded bg-white/80 px-3 py-1 text-sm hover:bg-white"
+                disabled={isUploading}
+              >
+                {isUploading ? '업로드 중...' : '변경'}
+              </button>
+            </div>
+          ) : (
+            <div
+              className={`flex h-[300px] cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 ${
+                isUploading ? 'opacity-50' : ''
+              }`}
+              onClick={() => {
+                if (isUploading) return
+                const input = document.createElement('input')
+                input.type = 'file'
+                input.accept = 'image/*'
+                input.onchange = (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0]
+                  if (file) handleThumbnailUpload(file)
+                }
+                input.click()
+              }}
+              role="button"
+              aria-label="썸네일 이미지 업로드"
+              aria-disabled={isUploading}
+            >
+              {isUploading ? '업로드 중...' : '썸네일 이미지 업로드'}
+            </div>
+          )}
+        </div>
+        
+        <div className="flex justify-end">
+          <button
+            onClick={handleNextStep}
+            disabled={!thumbnailUrl || !title.trim() || isUploading}
+            className="rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+          >
+            다음
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // 본문 작성 단계 렌더링
+  const renderContentStep = () => {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <BlockControls onAddBlock={handleAddBlock} />
+          <div className="space-x-2">
+            <button
+              onClick={handleUndo}
+              className="rounded px-3 py-1 text-sm hover:bg-gray-100"
+            >
+              실행 취소
+            </button>
+            <button
+              onClick={handleRedo}
+              className="rounded px-3 py-1 text-sm hover:bg-gray-100"
+            >
+              다시 실행
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+            >
+              {isSaving ? '저장 중...' : '저장'}
+            </button>
+            <button
+              onClick={() => savedNewsletterId && handleSend(savedNewsletterId)}
+              disabled={isSending || isSaving || !savedNewsletterId}
+              className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 disabled:opacity-50"
+            >
+              {isSending ? '발송 중...' : '발송하기'}
+            </button>
+          </div>
+        </div>
+        <EditorCanvas
+          blocks={blocks}
+          onChange={handleBlocksChange}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 space-y-4">
-          {blocks.length === 0 ? (
-            <div className="rounded-lg border border-gray-200 bg-white p-8">
-              <h2 className="mb-4 text-xl font-semibold">템플릿 선택</h2>
-              <TemplateSelector onSelect={handleTemplateSelect} />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <BlockControls onAddBlock={handleAddBlock} />
-                <div className="space-x-2">
-                  <button
-                    onClick={handleUndo}
-                    className="rounded px-3 py-1 text-sm hover:bg-gray-100"
-                  >
-                    실행 취소
-                  </button>
-                  <button
-                    onClick={handleRedo}
-                    className="rounded px-3 py-1 text-sm hover:bg-gray-100"
-                  >
-                    다시 실행
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
-                  >
-                    {isSaving ? '저장 중...' : '저장'}
-                  </button>
-                  <button
-                    onClick={() => savedNewsletterId && handleSend(savedNewsletterId)}
-                    disabled={isSending || isSaving || !savedNewsletterId}
-                    className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 disabled:opacity-50"
-                  >
-                    {isSending ? '발송 중...' : '발송하기'}
-                  </button>
-                </div>
-              </div>
-              <EditorCanvas
-                blocks={blocks}
-                onChange={handleBlocksChange}
-              />
-            </div>
-          )}
+          {step === 'thumbnail' ? renderThumbnailStep() : renderContentStep()}
         </div>
       </div>
     </div>
