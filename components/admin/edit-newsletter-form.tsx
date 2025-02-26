@@ -34,11 +34,14 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [history] = useState(() => new EditorHistory())
+  const [step, setStep] = useState<'thumbnail' | 'content'>('thumbnail')
+  const [error, setError] = useState<string | null>(null)
 
   // 썸네일 이미지 업로드 처리
   const handleThumbnailUpload = async (file: File) => {
     try {
       setIsUploading(true)
+      setError(null)
 
       if (file.size > 5 * 1024 * 1024) {
         throw new Error('파일 크기는 5MB 이하여야 합니다')
@@ -54,6 +57,7 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '이미지 업로드 실패'
+      setError(errorMessage)
       toast.error(errorMessage)
     } finally {
       setIsUploading(false)
@@ -63,6 +67,41 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
   const handleBlocksChange = useCallback((newBlocks: EditorBlock[]) => {
     setBlocks(newBlocks)
     history.push(newBlocks)
+  }, [history])
+
+  // 다음 단계로 이동
+  const handleNextStep = () => {
+    if (!thumbnailUrl) {
+      toast.error('썸네일 이미지를 업로드해주세요')
+      return
+    }
+    
+    if (!title.trim()) {
+      toast.error('제목을 입력해주세요')
+      return
+    }
+    
+    if (!summary.trim()) {
+      toast.error('요약을 입력해주세요')
+      return
+    }
+    
+    setStep('content')
+  }
+  
+  // 이전 단계로 돌아가기
+  const handlePrevStep = () => {
+    setStep('thumbnail')
+  }
+
+  const handleUndo = useCallback(() => {
+    const previousState = history.undo()
+    if (previousState) setBlocks(previousState)
+  }, [history])
+
+  const handleRedo = useCallback(() => {
+    const nextState = history.redo()
+    if (nextState) setBlocks(nextState)
   }, [history])
 
   const handleSave = async () => {
@@ -160,6 +199,7 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
         return
       }
 
+      // 중요: 여기서 update 메서드를 사용하여 기존 뉴스레터를 업데이트합니다
       const { error } = await supabase
         .from('newsletters')
         .update({
@@ -178,10 +218,13 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
         duration: 5000,
         icon: '✅'
       })
-      router.push('/admin/newsletters')
+      
+      // 변경사항이 반영되도록 페이지 새로고침
+      router.refresh()
+      
     } catch (error) {
       console.error('Error saving newsletter:', error)
-      toast.error('저장 중 오류가 발생했습니다', {
+      toast.error('저장 중 오류가 발생했습니다. 다시 시도해주세요.', {
         id: 'saving',
         duration: 5000,
         icon: '❌'
@@ -191,140 +234,164 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
     }
   }
 
-  const handleUndo = useCallback(() => {
-    const previousState = history.undo()
-    if (previousState) setBlocks(previousState)
-  }, [history])
+  // 썸네일 단계 렌더링
+  const renderThumbnailStep = () => {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-8">
+        <h2 className="mb-6 text-xl font-semibold">뉴스레터 기본 정보</h2>
+        
+        <div className="mb-6">
+          <label htmlFor="title" className="mb-2 block text-sm font-medium text-gray-700">
+            제목
+          </label>
+          <input
+            id="title"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="뉴스레터 제목을 입력하세요"
+            className="w-full rounded-lg border border-gray-300 p-3 text-lg"
+          />
+        </div>
+        
+        <div className="mb-6">
+          <label htmlFor="summary" className="mb-2 block text-sm font-medium text-gray-700">
+            요약 (최대 200자)
+          </label>
+          <textarea
+            id="summary"
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            placeholder="뉴스레터 카드에 표시될 요약을 작성하세요"
+            className="w-full rounded-lg border border-gray-300 p-3 text-base"
+            rows={3}
+            maxLength={200}
+          />
+        </div>
+        
+        <div className="mb-6">
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            썸네일 이미지
+          </label>
+          
+          {error && (
+            <div className="mb-2 text-sm text-red-500" role="alert">
+              {error}
+            </div>
+          )}
+          
+          {thumbnailUrl ? (
+            <div className="group relative rounded-lg border border-gray-200 p-2">
+              <div className="relative h-[300px] w-full overflow-hidden rounded">
+                <Image
+                  src={thumbnailUrl}
+                  alt="썸네일 이미지"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  const input = document.createElement('input')
+                  input.type = 'file'
+                  input.accept = 'image/*'
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0]
+                    if (file) handleThumbnailUpload(file)
+                  }
+                  input.click()
+                }}
+                className="absolute right-4 top-4 rounded bg-white/80 px-3 py-1 text-sm hover:bg-white"
+                disabled={isUploading}
+              >
+                {isUploading ? '업로드 중...' : '변경'}
+              </button>
+            </div>
+          ) : (
+            <div
+              className={`flex h-[300px] cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 ${
+                isUploading ? 'opacity-50' : ''
+              }`}
+              onClick={() => {
+                if (isUploading) return
+                const input = document.createElement('input')
+                input.type = 'file'
+                input.accept = 'image/*'
+                input.onchange = (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0]
+                  if (file) handleThumbnailUpload(file)
+                }
+                input.click()
+              }}
+              role="button"
+              aria-label="썸네일 이미지 업로드"
+              aria-disabled={isUploading}
+            >
+              {isUploading ? '업로드 중...' : '썸네일 이미지 업로드'}
+            </div>
+          )}
+        </div>
+        
+        <div className="flex justify-end">
+          <button
+            onClick={handleNextStep}
+            disabled={!thumbnailUrl || !title.trim() || !summary.trim() || isUploading}
+            className="rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+          >
+            다음
+          </button>
+        </div>
+      </div>
+    )
+  }
 
-  const handleRedo = useCallback(() => {
-    const nextState = history.redo()
-    if (nextState) setBlocks(nextState)
-  }, [history])
+  // 본문 작성 단계 렌더링
+  const renderContentStep = () => {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">뉴스레터 본문 작성</h2>
+          <div className="space-x-2">
+            <button
+              onClick={handlePrevStep}
+              className="rounded px-3 py-1 text-sm hover:bg-gray-100"
+            >
+              이전
+            </button>
+            <button
+              onClick={handleUndo}
+              className="rounded px-3 py-1 text-sm hover:bg-gray-100"
+            >
+              실행 취소
+            </button>
+            <button
+              onClick={handleRedo}
+              className="rounded px-3 py-1 text-sm hover:bg-gray-100"
+            >
+              다시 실행
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+            >
+              {isSaving ? '저장 중...' : '저장'}
+            </button>
+          </div>
+        </div>
+        <EditorCanvas
+          blocks={blocks}
+          onChange={handleBlocksChange}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 space-y-4">
-          <div className="rounded-lg border border-gray-200 bg-white p-8">
-            <h2 className="mb-6 text-xl font-semibold">뉴스레터 기본 정보</h2>
-            
-            <div className="mb-6">
-              <label htmlFor="title" className="mb-2 block text-sm font-medium text-gray-700">
-                제목
-              </label>
-              <input
-                id="title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="뉴스레터 제목을 입력하세요"
-                className="w-full rounded-lg border border-gray-300 p-3 text-lg"
-              />
-            </div>
-            
-            <div className="mb-6">
-              <label htmlFor="summary" className="mb-2 block text-sm font-medium text-gray-700">
-                요약 (최대 200자)
-              </label>
-              <textarea
-                id="summary"
-                value={summary}
-                onChange={(e) => setSummary(e.target.value)}
-                placeholder="뉴스레터 카드에 표시될 요약을 작성하세요"
-                className="w-full rounded-lg border border-gray-300 p-3 text-base"
-                rows={3}
-                maxLength={200}
-              />
-            </div>
-            
-            <div className="mb-6">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                썸네일 이미지
-              </label>
-              
-              {thumbnailUrl ? (
-                <div className="group relative rounded-lg border border-gray-200 p-2">
-                  <div className="relative h-[300px] w-full overflow-hidden rounded">
-                    <Image
-                      src={thumbnailUrl}
-                      alt="썸네일 이미지"
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <button
-                    onClick={() => {
-                      const input = document.createElement('input')
-                      input.type = 'file'
-                      input.accept = 'image/*'
-                      input.onchange = (e) => {
-                        const file = (e.target as HTMLInputElement).files?.[0]
-                        if (file) handleThumbnailUpload(file)
-                      }
-                      input.click()
-                    }}
-                    className="absolute right-4 top-4 rounded bg-white/80 px-3 py-1 text-sm hover:bg-white"
-                    disabled={isUploading}
-                  >
-                    {isUploading ? '업로드 중...' : '변경'}
-                  </button>
-                </div>
-              ) : (
-                <div
-                  className={`flex h-[300px] cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 ${
-                    isUploading ? 'opacity-50' : ''
-                  }`}
-                  onClick={() => {
-                    if (isUploading) return
-                    const input = document.createElement('input')
-                    input.type = 'file'
-                    input.accept = 'image/*'
-                    input.onchange = (e) => {
-                      const file = (e.target as HTMLInputElement).files?.[0]
-                      if (file) handleThumbnailUpload(file)
-                    }
-                    input.click()
-                  }}
-                  role="button"
-                  aria-label="썸네일 이미지 업로드"
-                  aria-disabled={isUploading}
-                >
-                  {isUploading ? '업로드 중...' : '썸네일 이미지 업로드'}
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">뉴스레터 본문 작성</h2>
-              <div className="space-x-2">
-                <button
-                  onClick={handleUndo}
-                  className="rounded px-3 py-1 text-sm hover:bg-gray-100"
-                >
-                  실행 취소
-                </button>
-                <button
-                  onClick={handleRedo}
-                  className="rounded px-3 py-1 text-sm hover:bg-gray-100"
-                >
-                  다시 실행
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
-                >
-                  {isSaving ? '저장 중...' : '저장'}
-                </button>
-              </div>
-            </div>
-            <EditorCanvas
-              blocks={blocks}
-              onChange={handleBlocksChange}
-            />
-          </div>
+          {step === 'thumbnail' ? renderThumbnailStep() : renderContentStep()}
         </div>
       </div>
     </div>
