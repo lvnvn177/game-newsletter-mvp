@@ -244,18 +244,9 @@ export default function EditorPage() {
         }
       }))
 
-      // 요약 블록 찾기 (두 번째 블록)
-      const summaryBlock = blocks.find((block, index) => index === 1 && block.type === 'text')
-      const summaryText = summaryBlock?.content.text || ''
-      
-      // 요약 텍스트에서 마크다운 제거하고 첫 200자 추출
-      const summary = summaryText
-        .replace(/#{1,6}\s?/g, '') // 헤딩 제거
-        .replace(/\*\*/g, '')      // 볼드 제거
-        .replace(/\*/g, '')        // 이탤릭 제거
-        .replace(/\[|\]/g, '')     // 링크 마크다운 제거
-        .slice(0, 200)
-        .trim() || title
+      // 첫 번째 단계에서 입력한 요약 텍스트를 그대로 사용
+      // 이전 코드에서는 텍스트 블록에서 요약을 추출했지만, 이제는 사용자가 직접 입력한 요약을 사용
+      const summaryText = summary.trim()
 
       if (!processedThumbnailUrl) {
         toast.error('썸네일 이미지 처리 중 오류가 발생했습니다', { id: 'saving' })
@@ -267,7 +258,7 @@ export default function EditorPage() {
         .insert({
           title,
           content: { blocks: processedBlocks },
-          summary,
+          summary: summaryText, // 사용자가 입력한 요약 텍스트 사용
           thumbnail_url: processedThumbnailUrl
         })
         .select()
