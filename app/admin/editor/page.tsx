@@ -142,11 +142,6 @@ export default function EditorPage() {
   }, [history])
 
   const handleSave = async () => {
-    if (!thumbnailUrl) {
-      toast.error('썸네일 이미지를 업로드해주세요')
-      return
-    }
-    
     if (!title.trim()) {
       toast.error('제목을 입력해주세요')
       return
@@ -161,44 +156,49 @@ export default function EditorPage() {
 
     try {
       setIsSaving(true)
+      toast.loading('뉴스레터를 저장하는 중입니다...', { id: 'saving' })
+      
+      // 썸네일 이미지 처리 (이미 업로드된 이미지 사용)
+      let processedThumbnailUrl = thumbnailUrl
+      
+      // 임시 URL인 경우 Supabase에 업로드
+      if (thumbnailUrl && !thumbnailUrl.includes(process.env.NEXT_PUBLIC_SUPABASE_URL!)) {
+        try {
+          const response = await fetch(thumbnailUrl)
+          const blob = await response.blob()
+          const fileExt = blob.type.split('/')[1]
+          const filename = `newsletters/${Date.now()}-${nanoid()}.${fileExt}`
+          
+          const { data: uploadData, error: uploadError } = await supabase
+            .storage
+            .from('images')
+            .upload(filename, blob)
+
+          if (uploadError) throw uploadError
+
+          processedThumbnailUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${filename}`
+        } catch (error) {
+          console.error('Error uploading thumbnail:', error)
+          toast.error('썸네일 이미지 업로드 중 오류가 발생했습니다', { id: 'saving' })
+          return
+        }
+      }
       
       // 이미지와 오디오 블록들의 파일을 Supabase Storage에 업로드
       const processedBlocks = await Promise.all(blocks.map(async block => {
         const { id, ...blockData } = block
         
-        if (block.type === 'image' && block.content.imageUrl) {
-          try {
-            const response = await fetch(block.content.imageUrl)
-            const blob = await response.blob()
-            const filename = `newsletters/${Date.now()}-${nanoid()}.${blob.type.split('/')[1]}`
-            
-            const { data: uploadData, error: uploadError } = await supabase
-              .storage
-              .from('images')
-              .upload(filename, blob)
-
-            if (uploadError) throw uploadError
-
-            const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${filename}`
-
-            return {
-              ...blockData,
-              id: nanoid(),
-              content: {
-                ...block.content,
-                imageUrl
-              },
-              settings: block.settings
-            }
-          } catch (error) {
-            console.error('Error uploading image:', error)
-            throw new Error('이미지 업로드 중 오류가 발생했습니다')
-          }
-        }
-
-        // 오디오 블록 처리 추가
+        // 오디오 블록 처리
         if (block.type === 'audio' && block.content.audioUrl) {
           try {
+            // 이미 Supabase URL인 경우 그대로 사용
+            if (block.content.audioUrl.includes(process.env.NEXT_PUBLIC_SUPABASE_URL!)) {
+              return {
+                ...blockData,
+                id: nanoid()
+              }
+            }
+            
             const response = await fetch(block.content.audioUrl)
             const blob = await response.blob()
             const filename = `newsletters/${Date.now()}-${nanoid()}.${blob.type.split('/')[1]}`
@@ -237,12 +237,8 @@ export default function EditorPage() {
       const textBlockContent = textBlock?.content.text || ''
       const summary = textBlockContent.slice(0, 200) || title
 
-      // 첫 번째 이미지 블록의 URL을 썸네일로 사용
-      const firstImageBlock = processedBlocks.find(block => block.type === 'image')
-      const processedThumbnailUrl = firstImageBlock?.content.imageUrl
-
       if (!processedThumbnailUrl) {
-        toast.error('썸네일 이미지 처리 중 오류가 발생했습니다')
+        toast.error('썸네일 이미지 처리 중 오류가 발생했습니다', { id: 'saving' })
         return
       }
 
@@ -262,6 +258,7 @@ export default function EditorPage() {
       if (data) {
         setSavedNewsletterId(data.id)
         toast.success('뉴스레터가 성공적으로 저장되었습니다. 이제 발송하거나 계속 편집할 수 있습니다.', {
+          id: 'saving',
           duration: 5000,
           icon: '✅'
         })
@@ -269,6 +266,7 @@ export default function EditorPage() {
     } catch (error) {
       console.error('Error saving newsletter:', error)
       toast.error('저장 중 오류가 발생했습니다. 다시 시도해주세요.', {
+        id: 'saving',
         duration: 5000,
         icon: '❌'
       })
@@ -280,6 +278,7 @@ export default function EditorPage() {
   const handleSend = async (newsletterId: string) => {
     try {
       setIsSending(true)
+      toast.loading('뉴스레터를 발송하는 중입니다...', { id: 'sending' })
       
       const response = await fetch(`/api/newsletters/${newsletterId}/send`, {
         method: 'POST',
@@ -293,13 +292,21 @@ export default function EditorPage() {
         throw new Error(errorData.error || '뉴스레터 발송에 실패했습니다')
       }
       
-      toast.success('뉴스레터가 성공적으로 발송되었습니다')
+      toast.success('뉴스레터가 성공적으로 발송되었습니다', {
+        id: 'sending',
+        duration: 5000,
+        icon: '✅'
+      })
       
       // 발송 성공 후 발송 이력 페이지로 리다이렉트
       router.push('/admin/sends')
     } catch (error) {
       console.error('뉴스레터 발송 오류:', error)
-      toast.error(error instanceof Error ? error.message : '뉴스레터 발송에 실패했습니다')
+      toast.error(error instanceof Error ? error.message : '뉴스레터 발송에 실패했습니다', {
+        id: 'sending',
+        duration: 5000,
+        icon: '❌'
+      })
     } finally {
       setIsSending(false)
     }
