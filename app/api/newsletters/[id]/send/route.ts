@@ -86,6 +86,7 @@ export async function POST(
       sentCount: successCount,
       failCount,
       error: errorMessage,
+      newsletterId: id
     })
   } catch (error) {
     console.error('Newsletter sending error:', error)

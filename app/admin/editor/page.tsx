@@ -197,57 +197,23 @@ export default function EditorPage() {
     try {
       setIsSending(true)
       
-      // 뉴스레터 데이터 가져오기
-      const { data: newsletter, error: fetchError } = await supabase
-        .from('newsletters')
-        .select('*')
-        .eq('id', newsletterId)
-        .single()
-      
-      if (fetchError) throw fetchError
-      
-      // 마크다운 이미지 URL 추출 및 처리
-      const processedNewsletter = { ...newsletter }
-      
-      // 텍스트 블록에서 마크다운 이미지 URL 추출
-      if (processedNewsletter.content && processedNewsletter.content.blocks) {
-        processedNewsletter.content.blocks = processedNewsletter.content.blocks.map((block: any) => {
-          if (block.type === 'text' && block.content.text) {
-            // 마크다운 이미지 URL 추출 (![alt](url) 형식)
-            const imgRegex = /!\[.*?\]\((.*?)\)/g
-            const matches = [...block.content.text.matchAll(imgRegex)]
-            
-            // 이미지 URL이 있으면 별도의 이미지 블록으로 추가
-            if (matches.length > 0) {
-              // 텍스트에서 이미지 마크다운 제거 (옵션)
-              // block.content.text = block.content.text.replace(imgRegex, '');
-            }
-          }
-          return block
-        })
-      }
-      
-      // 이메일 발송 API 호출
-      const response = await fetch('/api/send-newsletter', {
+      // 올바른 API 엔드포인트로 수정
+      const response = await fetch(`/api/newsletters/${newsletterId}/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          newsletterId,
-          newsletter: processedNewsletter // 처리된 뉴스레터 데이터 전송
-        }),
+        }
       })
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.message || '뉴스레터 발송에 실패했습니다')
+        throw new Error(errorData.error || '뉴스레터 발송에 실패했습니다')
       }
       
       toast.success('뉴스레터가 성공적으로 발송되었습니다')
       
-      // 발송 성공 후 관리자 대시보드로 리다이렉트 (선택사항)
-      router.push('/admin/newsletters')
+      // 발송 성공 후 발송 이력 페이지로 리다이렉트
+      router.push('/admin/sends')
     } catch (error) {
       console.error('뉴스레터 발송 오류:', error)
       toast.error(error instanceof Error ? error.message : '뉴스레터 발송에 실패했습니다')

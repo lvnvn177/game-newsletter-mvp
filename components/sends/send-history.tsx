@@ -8,8 +8,18 @@ import { Pagination } from '@/components/ui/pagination'
 
 const ITEMS_PER_PAGE = 10
 
+// 타입 확장 (기존 타입을 유지하면서 필요한 속성 추가)
+interface ExtendedNewsletterSend extends NewsletterSend {
+  total_recipients: number;
+  metadata?: {
+    success_count?: number;
+    fail_count?: number;
+  };
+  error_message?: string;
+}
+
 export function SendHistory() {
-  const [sends, setSends] = useState<NewsletterSend[]>([])
+  const [sends, setSends] = useState<ExtendedNewsletterSend[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
@@ -97,16 +107,16 @@ export function SendHistory() {
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  {send.recipient_count}명
+                  {send.total_recipients}명
                 </td>
                 <td className="px-6 py-4">
                   {send.status === 'success' ? (
                     <span className="text-green-600">
-                      성공: {send.success_count}명
+                      성공: {send.metadata?.success_count || 0}명
                     </span>
                   ) : (
                     <span className="text-red-600">
-                      실패: {send.fail_count}명
+                      실패: {send.metadata?.fail_count || 0}명
                       {send.error_message && (
                         <span className="ml-2 text-sm text-gray-500">
                           ({send.error_message})
