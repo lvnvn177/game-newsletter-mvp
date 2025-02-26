@@ -31,6 +31,16 @@ export function TextBlock({ block, onUpdate }: TextBlockProps) {
     if (!isEditing) return
 
     const handleClickOutside = (event: MouseEvent) => {
+      // 에디터 메뉴 클릭 감지 - data-mode 속성이 있는 요소는 에디터 메뉴의 일부
+      const isEditorMenu = (event.target as HTMLElement)?.closest('[data-mode]') || 
+                           (event.target as HTMLElement)?.closest('.w-md-editor-toolbar') ||
+                           (event.target as HTMLElement)?.closest('.w-md-editor-toolbar-child');
+      
+      if (isEditorMenu) {
+        // 에디터 메뉴 클릭 시 이벤트 무시
+        return;
+      }
+      
       if (
         containerRef.current && 
         !containerRef.current.contains(event.target as Node)
@@ -58,7 +68,18 @@ export function TextBlock({ block, onUpdate }: TextBlockProps) {
   }
 
   // 편집 완료 핸들러
-  const handleBlur = () => {
+  const handleBlur = (event: React.FocusEvent) => {
+    // 에디터 메뉴로의 포커스 이동인 경우 무시
+    const relatedTarget = event.relatedTarget as HTMLElement;
+    if (
+      relatedTarget?.closest('.w-md-editor-toolbar') ||
+      relatedTarget?.closest('[data-mode]') ||
+      relatedTarget?.closest('.w-md-editor-toolbar-child')
+    ) {
+      return;
+    }
+    
+    // 에디터 외부로 포커스가 이동한 경우에만 편집 종료
     setIsEditing(false)
     onUpdate({
       ...block,
@@ -66,13 +87,30 @@ export function TextBlock({ block, onUpdate }: TextBlockProps) {
     })
   }
 
+  // 키보드 단축키 처리
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Escape 키를 누르면 편집 종료
+    if (e.key === 'Escape') {
+      setIsEditing(false)
+      onUpdate({
+        ...block,
+        content: { ...block.content, text: value }
+      })
+    }
+  }
+
   if (isEditing) {
     return (
-      <div ref={containerRef} className="my-4">
+      <div 
+        ref={containerRef} 
+        className="my-4"
+        data-color-mode="light"
+      >
         <MDEditor
           value={value}
           onChange={handleChange}
           onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
           preview="edit"
           height={300}
           style={{ ...block.settings.style }}
