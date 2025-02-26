@@ -90,12 +90,27 @@ export default function EditorPage() {
       settings: {}
     }
     
-    // 텍스트 블록 추가 (두 번째로 추가)
+    // 요약 블록 추가 (두 번째로 추가)
+    const summaryBlock: EditorBlock = {
+      id: nanoid(),
+      type: 'text',
+      content: {
+        text: `## 요약\n\n뉴스레터 카드에 표시될 요약을 작성하세요. (최대 200자)`
+      },
+      settings: {
+        style: {
+          lineHeight: '1.6',
+          marginBottom: '20px'
+        }
+      }
+    }
+    
+    // 텍스트 블록 추가 (세 번째로 추가)
     const textBlock: EditorBlock = {
       id: nanoid(),
       type: 'text',
       content: {
-        text: `# ${title}\n\n여기에 본문을 작성하세요.`
+        text: `## 본문 작성 페이지`
       },
       settings: {
         style: {
@@ -104,8 +119,8 @@ export default function EditorPage() {
       }
     }
     
-    // 오디오 블록과 텍스트 블록만 설정 (썸네일 블록은 제외)
-    const newBlocks = [audioBlock, textBlock]
+    // 오디오 블록, 요약 블록, 텍스트 블록 순서로 설정
+    const newBlocks = [audioBlock, summaryBlock, textBlock]
     
     setBlocks(newBlocks)
     history.push(newBlocks)
@@ -233,9 +248,18 @@ export default function EditorPage() {
         }
       }))
 
-      // 텍스트 블록의 내용을 요약으로 사용
-      const textBlockContent = textBlock?.content.text || ''
-      const summary = textBlockContent.slice(0, 200) || title
+      // 요약 블록 찾기 (두 번째 블록)
+      const summaryBlock = blocks.find((block, index) => index === 1 && block.type === 'text')
+      const summaryText = summaryBlock?.content.text || ''
+      
+      // 요약 텍스트에서 마크다운 제거하고 첫 200자 추출
+      const summary = summaryText
+        .replace(/#{1,6}\s?/g, '') // 헤딩 제거
+        .replace(/\*\*/g, '')      // 볼드 제거
+        .replace(/\*/g, '')        // 이탤릭 제거
+        .replace(/\[|\]/g, '')     // 링크 마크다운 제거
+        .slice(0, 200)
+        .trim() || title
 
       if (!processedThumbnailUrl) {
         toast.error('썸네일 이미지 처리 중 오류가 발생했습니다', { id: 'saving' })
