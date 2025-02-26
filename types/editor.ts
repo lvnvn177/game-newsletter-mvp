@@ -34,4 +34,8 @@ export interface Template {
   name: string
   description: string
   blocks: Block[]
+}
+
+interface TextBlockContent {
+  text?: string;
 } 

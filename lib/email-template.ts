@@ -222,13 +222,23 @@ export function generateNewsletterHTML(newsletter: Newsletter): string {
           // 마크다운 스타일 텍스트를 HTML로 변환
           let text = block.content.text;
           
-          // 제목 처리
+          // 제목 처리 (h1, h2, h3)
+          text = text.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
           text = text.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
           text = text.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+          
+          // 리스트 처리
+          text = text.replace(/^\*\s+(.+)$/gm, '<li>$1</li>');
+          text = text.replace(/^-\s+(.+)$/gm, '<li>$1</li>');
+          text = text.replace(/^(\d+)\.\s+(.+)$/gm, '<li>$2</li>');
+          
+          // 리스트 그룹화
+          text = text.replace(/(<li>.+<\/li>\n)+/g, '<ul>$&</ul>');
           
           const htmlText = text
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // 볼드 처리
             .replace(/\*(.*?)\*/g, '<em>$1</em>') // 이탤릭 처리
+            .replace(/`(.*?)`/g, '<code>$1</code>') // 인라인 코드 처리
             .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color: #3b82f6; text-decoration: none;">$1</a>') // 링크 처리
             .replace(/\n\n/g, '</p><p>') // 단락 구분
             .replace(/\n/g, '<br>'); // 줄바꿈

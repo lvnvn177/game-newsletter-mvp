@@ -1,6 +1,8 @@
 import { Navigation } from '@/components/navigation'
 import type { Metadata } from 'next'
 import './globals.css'
+import '@uiw/react-md-editor/markdown-editor.css';
+import '@uiw/react-markdown-preview/markdown.css';
 
 export const metadata: Metadata = {
   title: 'GameHye',

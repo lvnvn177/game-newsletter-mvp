@@ -1,7 +1,14 @@
 'use client'
 
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import type { EditorBlock } from '@/types/editor'
+
+// 클라이언트 사이드에서만 로드
+const MDPreview = dynamic(
+  () => import('@uiw/react-markdown-preview').then((mod) => mod.default),
+  { ssr: false }
+)
 
 interface BlockRendererProps {
   block: EditorBlock
@@ -14,8 +21,11 @@ export function NewsletterBlockRenderer({ block }: BlockRendererProps) {
         <div 
           className="prose prose-lg max-w-none"
           style={block.settings.style}
-          dangerouslySetInnerHTML={{ __html: block.content.text || '' }}
-        />
+        >
+          {block.content.text ? (
+            <MDPreview source={block.content.text} />
+          ) : null}
+        </div>
       )
 
     case 'image':
