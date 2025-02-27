@@ -25,11 +25,21 @@ export function SubscribeForm() {
         throw new Error(data.error)
       }
 
-      toast.success('구독 신청이 완료되었습니다!')
+      toast.success('축하합니다! 앞으로 최신 게임 뉴스레터를 받아보실 수 있습니다!', {
+        duration: 5000,
+        icon: '🎮',
+      })
       setEmail('')
     } catch (err) {
       console.error('Error subscribing:', err)
-      toast.error(err instanceof Error ? err.message : '구독 신청에 실패했습니다.')
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : '구독 신청에 실패했습니다. 잠시 후 다시 시도해주세요.';
+      
+      toast.error(errorMessage, {
+        duration: 4000,
+        icon: '❌',
+      })
     } finally {
       setIsLoading(false)
     }
@@ -48,7 +58,7 @@ export function SubscribeForm() {
       <button
         type="submit"
         disabled={isLoading}
-        className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+        className="rounded bg-black px-4 py-2 text-white hover:bg-gray-800 disabled:opacity-50"
       >
         {isLoading ? '처리중...' : '구독하기'}
       </button>
