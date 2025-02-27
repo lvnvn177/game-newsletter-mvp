@@ -1,5 +1,4 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { supabase } from '@/lib/supabase'
 import { Subscriber, NewsletterSend } from '@/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -7,8 +6,6 @@ export const fetchCache = 'force-no-store'
 export const revalidate = 0
 
 export default async function AdminDashboardPage() {
-  const supabase = createServerComponentClient({ cookies })
-  
   // 구독자 수 조회
   const { count: subscriberCount, error: subscriberError } = await supabase
     .from('subscribers')
