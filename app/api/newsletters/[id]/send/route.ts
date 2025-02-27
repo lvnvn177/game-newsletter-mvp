@@ -50,9 +50,10 @@ export async function POST(
     const html = generateNewsletterHTML(newsletter)
 
     try {
-      // 이메일 발송
+      // 이메일 발송 - Bcc 필드 사용하여 다른 수신자 이메일 숨기기
       await sendEmail({
-        to: subscribers.map((sub: Subscriber) => sub.email),
+        to: process.env.ADMIN_EMAIL || 'admin@example.com', // 관리자 이메일 또는 대표 이메일
+        bcc: subscribers.map((sub: Subscriber) => sub.email), // 모든 구독자를 Bcc로 설정
         subject: newsletter.title,
         html,
       })

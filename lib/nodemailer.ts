@@ -11,19 +11,21 @@ const transporter = nodemailer.createTransport({
 })
 
 export interface EmailData {
-  to: string[]
+  to: string | string[]
   subject: string
   html: string
   from?: string
+  bcc?: string | string[]
 }
 
-export async function sendEmail({ to, subject, html, from }: EmailData) {
+export async function sendEmail({ to, subject, html, from, bcc }: EmailData) {
   return await transporter.sendMail({
     from: {
       name: '뉴스레터 서비스명',
       address: process.env.SENDER_EMAIL
     },
     to,
+    bcc,
     subject,
     html,
     headers: {
