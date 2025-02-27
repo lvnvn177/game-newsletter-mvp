@@ -13,7 +13,15 @@ export default function AboutPage() {
       {/* 히어로 섹션 */}
       <section className="bg-gray-50 py-20">
         <div className="mx-auto max-w-4xl px-4 text-center">
-          <h1 className="mb-4 text-4xl font-bold">GameHye</h1>
+          <div className="mb-4 flex justify-center">
+            <Image 
+              src="/icon_mark.png" 
+              alt="GameHye" 
+              width={250} 
+              height={80} 
+              className="h-auto"
+            />
+          </div>
           <p className="mb-8 text-xl text-gray-600">
             게임 리뷰와 해설이 함께하는 프리미엄 뉴스레터
           </p>
@@ -30,7 +38,7 @@ export default function AboutPage() {
                 <li>• 텍스트, 이미지, 오디오가 결합된 멀티미디어 리뷰</li>
                 <li>• 상세한 게임 분석</li>
                 <li>• 게임 해설 오디오 나레이션 제공</li>
-                <li>• 신작 및 할인 게임 위주의 큐레이션</li>
+                {/* <li>• 신작 및 할인 게임 위주의 큐레이션</li> */}
               </ul>
             </div>
             <div>

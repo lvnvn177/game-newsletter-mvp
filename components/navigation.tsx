@@ -9,8 +9,9 @@ export function Navigation() {
 
   const links = [
     { href: '/', label: '홈' },
-    { href: '/newsletters', label: '뉴스레터' },
+    // { href: '/newsletters', label: '뉴스레터' },
     { href: '/about', label: '소개' },
+    { href: '/notices', label: '공지사항' },
   ]
 
   return (

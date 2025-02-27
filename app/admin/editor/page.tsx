@@ -497,10 +497,12 @@ export default function EditorPage() {
             </button>
           </div>
         </div>
-        <EditorCanvas
-          blocks={blocks}
-          onChange={handleBlocksChange}
-        />
+        <div className="bg-white rounded-lg p-4 shadow-sm">
+          <EditorCanvas
+            blocks={blocks}
+            onChange={handleBlocksChange}
+          />
+        </div>
       </div>
     )
   }

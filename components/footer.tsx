@@ -1,10 +1,20 @@
+import Image from 'next/image'
+
 export function Footer() {
   return (
     <footer className="border-t bg-white">
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid gap-8 md:grid-cols-2">
           <div>
-            <h3 className="mb-4 text-lg font-semibold">GameHye</h3>
+            <div className="mb-4">
+              <Image 
+                src="/icon_mark.png" 
+                alt="GameHye" 
+                width={150} 
+                height={50} 
+                className="h-auto"
+              />
+            </div>
             <p className="text-sm text-gray-600">
               게임 리뷰와 해설이 함께하는 프리미엄 뉴스레터
             </p>

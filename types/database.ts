@@ -49,3 +49,20 @@ export interface NewsletterSend {
 }
 
 export type NewsletterListItem = Pick<Newsletter, 'id' | 'title' | 'summary' | 'thumbnail_url' | 'created_at'>
+
+export interface Notice {
+  id: string
+  title: string
+  content: string
+  created_at: string
+  updated_at: string
+  published: boolean
+}
+
+export interface NoticeListItem {
+  id: string
+  title: string
+  created_at: string
+  updated_at: string
+  published: boolean
+}
