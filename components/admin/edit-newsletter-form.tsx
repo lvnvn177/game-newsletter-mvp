@@ -199,8 +199,8 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
         return
       }
 
-      // 중요: 여기서 update 메서드를 사용하여 기존 뉴스레터를 업데이트합니다
-      const { data, error } = await supabase
+      // 뉴스레터 업데이트
+      const { error } = await supabase
         .from('newsletters')
         .update({
           title,
@@ -209,9 +209,7 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
           thumbnail_url: processedThumbnailUrl,
           updated_at: new Date().toISOString()
         })
-        .eq('id', newsletter.id)  // newsletter.id로 정확히 해당 뉴스레터를 찾습니다
-        .select()
-        .single()
+        .eq('id', newsletter.id)
 
       if (error) {
         console.error('Error updating newsletter:', error)
@@ -224,11 +222,11 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
         icon: '✅'
       })
       
-      // 페이지 새로고침
+      // 캐시를 무효화하고 페이지 새로고침
       router.refresh()
       
-      // 필요하다면 목록 페이지로 리다이렉트
-      // router.push('/admin/newsletters')
+      // 뉴스레터 보기 페이지로 리다이렉트 (선택적)
+      // router.push(`/newsletter/${newsletter.id}`)
     } catch (error) {
       console.error('Error saving newsletter:', error)
       toast.error('저장 중 오류가 발생했습니다. 다시 시도해주세요.', {
