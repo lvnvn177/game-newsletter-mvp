@@ -17,8 +17,8 @@ export function AudioBlock({ block, onUpdate }: AudioBlockProps) {
       setIsLoading(true)
       setError(null)
 
-      if (file.size > 20 * 1024 * 1024) {
-        throw new Error('파일 크기는 20MB 이하여야 합니다')
+      if (file.size > 40 * 1024 * 1024) {
+        throw new Error('파일 크기는 40MB 이하여야 합니다')
       }
 
       const fileExt = file.name.split('.').pop()?.toLowerCase()
