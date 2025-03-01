@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import type { NoticeListItem } from '@/types/database'
@@ -18,6 +19,12 @@ export default function NoticeCard({
   onPublishToggle,
   onDelete
 }: NoticeCardProps) {
+  const router = useRouter()
+
+  const handleEdit = () => {
+    router.push(`/admin/notices/view/${notice.id}`)
+  }
+
   return (
     <div className="group block overflow-hidden rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
       <Link href={isAdmin ? `/admin/notices/${notice.id}` : `/notices/${notice.id}`}>
@@ -55,6 +62,13 @@ export default function NoticeCard({
               {notice.published ? '비공개로 전환' : '게시하기'}
             </button>
           )}
+          
+          <button
+            onClick={handleEdit}
+            className="rounded bg-blue-100 px-3 py-1 text-xs text-blue-700 hover:bg-blue-200"
+          >
+            수정
+          </button>
           
           {onDelete && (
             <button
