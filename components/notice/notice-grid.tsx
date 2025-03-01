@@ -49,6 +49,7 @@ export default function NoticeGrid({ initialNotices, isAdmin = false }: NoticeGr
           notice={notice}
           isAdmin={isAdmin}
           onPublishToggle={handlePublishToggle}
+          onDelete={handleDeleteNotice}
         />
       ))}
     </div>

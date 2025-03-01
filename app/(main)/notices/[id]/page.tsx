@@ -45,7 +45,7 @@ export default async function NoticePage({ params }: PageProps) {
   const { id } = await params;
   const notice = await getNotice(id);
 
-  if (!notice) {
+if (!notice) {
     notFound();
   }
 

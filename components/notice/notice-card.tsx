@@ -9,9 +9,15 @@ interface NoticeCardProps {
   notice: NoticeListItem
   isAdmin?: boolean
   onPublishToggle?: (id: string, publish: boolean) => Promise<void>
+  onDelete?: (id: string) => Promise<void>
 }
 
-export default function NoticeCard({ notice, isAdmin = false, onPublishToggle }: NoticeCardProps) {
+export default function NoticeCard({ 
+  notice, 
+  isAdmin = false, 
+  onPublishToggle,
+  onDelete
+}: NoticeCardProps) {
   return (
     <div className="group block overflow-hidden rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
       <Link href={isAdmin ? `/admin/notices/${notice.id}` : `/notices/${notice.id}`}>
@@ -35,18 +41,33 @@ export default function NoticeCard({ notice, isAdmin = false, onPublishToggle }:
         )}
       </div>
       
-      {isAdmin && onPublishToggle && (
+      {isAdmin && (
         <div className="mt-4 flex justify-end space-x-2">
-          <button
-            onClick={() => onPublishToggle(notice.id, !notice.published)}
-            className={`rounded px-3 py-1 text-xs ${
-              notice.published 
-                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
-                : 'bg-green-100 text-green-700 hover:bg-green-200'
-            }`}
-          >
-            {notice.published ? '비공개로 전환' : '게시하기'}
-          </button>
+          {onPublishToggle && (
+            <button
+              onClick={() => onPublishToggle(notice.id, !notice.published)}
+              className={`rounded px-3 py-1 text-xs ${
+                notice.published 
+                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
+                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+              }`}
+            >
+              {notice.published ? '비공개로 전환' : '게시하기'}
+            </button>
+          )}
+          
+          {onDelete && (
+            <button
+              onClick={() => {
+                if (window.confirm('정말로 이 공지사항을 삭제하시겠습니까?')) {
+                  onDelete(notice.id)
+                }
+              }}
+              className="rounded bg-red-100 px-3 py-1 text-xs text-red-700 hover:bg-red-200"
+            >
+              삭제
+            </button>
+          )}
         </div>
       )}
     </div>
