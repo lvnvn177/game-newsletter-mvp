@@ -1,4 +1,22 @@
 import { supabase } from '@/lib/supabase'
+import { supabase as supabaseBrowser } from '@/lib/supabase-browser'
+import { toast } from 'react-hot-toast'
+
+export async function getNewsletterById(id: string) {
+  try {
+    const { data, error } = await supabase
+      .from('newsletters')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) throw error
+    return data
+  } catch (error) {
+    console.error('Error fetching newsletter:', error)
+    return null
+  }
+}
 
 export async function deleteNewsletter(id: string) {
   try {
@@ -59,5 +77,24 @@ export async function deleteNewsletter(id: string) {
   } catch (err) {
     console.error('Error deleting newsletter:', err)
     throw err
+  }
+}
+
+// 클라이언트 컴포넌트에서 사용할 수 있는 브라우저용 함수
+export async function deleteNewsletterClient(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabaseBrowser
+      .from('newsletters')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+    
+    toast.success('뉴스레터가 삭제되었습니다')
+    return true
+  } catch (error) {
+    console.error('Error deleting newsletter:', error)
+    toast.error('뉴스레터 삭제 중 오류가 발생했습니다')
+    return false
   }
 } 

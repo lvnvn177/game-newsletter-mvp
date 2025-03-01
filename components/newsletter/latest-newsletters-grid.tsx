@@ -4,9 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import NewsletterCard from '@/components/newsletter/newsletter-card'
 import { deleteNewsletter } from '@/lib/newsletter'
-import type { Newsletter } from '@/types/database'
-
-type NewsletterListItem = Pick<Newsletter, 'id' | 'title' | 'summary' | 'thumbnail_url' | 'created_at'>
+import type { NewsletterListItem } from '@/types/database'
 
 export default function LatestNewslettersGrid() {
   const [newsletters, setNewsletters] = useState<NewsletterListItem[]>([])
@@ -25,7 +23,7 @@ export default function LatestNewslettersGrid() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      if (data) setNewsletters(data)
+      if (data) setNewsletters(data as NewsletterListItem[])
     } catch (err) {
       console.error('Error fetching newsletters:', err)
       setError('최신 뉴스레터를 불러오는데 실패했습니다.')
