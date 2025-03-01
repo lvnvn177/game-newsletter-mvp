@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase-browser'
 import { toast } from 'react-hot-toast'
+import { NoticeTextBlock } from '@/components/notice/notice-text-block'
 
 export default function CreateNoticePage() {
   const router = useRouter()
@@ -66,33 +67,23 @@ export default function CreateNoticePage() {
           <div className="rounded-lg border border-gray-200 bg-white p-8">
             <h2 className="mb-6 text-xl font-semibold">공지사항 작성</h2>
             
-            <div className="mb-6">
-              <label htmlFor="title" className="mb-2 block text-sm font-medium text-gray-700">
-                제목
-              </label>
-              <input
-                id="title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="공지사항 제목을 입력하세요"
-                className="w-full rounded-lg border border-gray-300 p-3 text-lg"
-              />
-            </div>
+            <NoticeTextBlock
+              label="제목"
+              value={title}
+              onChange={setTitle}
+              placeholder="공지사항 제목을 입력하세요"
+              height={100}
+              preview="edit"
+            />
             
-            <div className="mb-6">
-              <label htmlFor="content" className="mb-2 block text-sm font-medium text-gray-700">
-                내용 (마크다운 형식 지원)
-              </label>
-              <textarea
-                id="content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="공지사항 내용을 작성하세요. 마크다운 형식을 지원합니다."
-                className="w-full rounded-lg border border-gray-300 p-3 text-base font-mono"
-                rows={15}
-              />
-            </div>
+            <NoticeTextBlock
+              label="내용 (마크다운 형식 지원)"
+              value={content}
+              onChange={setContent}
+              placeholder="공지사항 내용을 작성하세요. 마크다운 형식을 지원합니다."
+              height={400}
+              preview="live"
+            />
             
             <div className="mb-6">
               <label className="flex items-center">

@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/lib/utils'
-import Markdown from 'react-markdown'
+import { NoticeContent } from '@/components/notice/notice-content'
 
 type Params = Promise<{ id: string }>;
 
@@ -63,9 +63,7 @@ if (!notice) {
         </header>
 
         {/* 콘텐츠 */}
-        <div className="prose prose-lg max-w-none">
-          <Markdown>{notice.content}</Markdown>
-        </div>
+        <NoticeContent content={notice.content} />
       </div>
     </article>
   );
