@@ -32,7 +32,7 @@ export default function HomePage() {
       {/* 최신 뉴스레터 섹션 */}
       <section className="py-16">
         <div className="mx-auto max-w-6xl px-4">
-          <h2 className="mb-8 text-2xl font-bold">다양한 게임 뉴스레터</h2>
+          <h2 className="mb-8 text-2xl font-bold">게임 뉴스레터</h2>
           <LatestNewslettersGrid />
         </div>
       </section>
