@@ -28,36 +28,36 @@ export function Footer() {
               {/* <p>주소: 서울특별시 강남구 테헤란로 123 게임하이빌딩 4층</p> */}
               <div className="mt-4 flex space-x-4">
                 <a 
-                  href="https://notion.so/gamehye/terms" 
+                  href="https://0407205.notion.site/GameHye-1a9940566a298042ac5cf0a15673357b?pvs=4" 
                   target="_blank"
                   rel="noopener noreferrer" 
                   className="text-blue-600 hover:underline"
                 >
-                  Terms of Service
+                  이용 약관
                 </a>
                 <a 
-                  href="https://notion.so/gamehye/privacy" 
+                  href="https://0407205.notion.site/GameHye-1a9940566a29809c8c8bd489a5408c57?pvs=4" 
                   target="_blank"
                   rel="noopener noreferrer" 
                   className="text-blue-600 hover:underline"
                 >
-                  Privacy Policy
+                  개인 정보 취급 방침
                 </a>
-                <a 
+                {/* <a 
                   href="https://notion.so/gamehye/copyright" 
                   target="_blank"
                   rel="noopener noreferrer" 
                   className="text-blue-600 hover:underline"
                 >
                   Copyright Notice
-                </a>
+                </a> */}
               </div>
             </div>
           </div>
         </div>
         <div className="mt-8 border-t pt-8 text-center text-sm text-gray-500">
           {/* © Copyright {new Date().getFullYear()} All Rights Reserved */}
-          © Copyright sellanding.kr All Rights Reserved
+          © Copyright Sellanding All Rights Reserved
         </div>
       </div>
     </footer>

@@ -21,7 +21,7 @@ export interface EmailData {
 export async function sendEmail({ to, subject, html, from, bcc }: EmailData) {
   return await transporter.sendMail({
     from: {
-      name: '뉴스레터 서비스명',
+      name: 'GameHye',
       address: process.env.SENDER_EMAIL
     },
     to,
