@@ -4,6 +4,7 @@ import NoticeGrid from '@/components/notice/notice-grid'
 import type { NoticeListItem } from '@/types/database'
 
 async function getNotices(): Promise<NoticeListItem[]> {
+  // 관리자 페이지에서는 공개/비공개 상태와 관계없이 모든 공지사항을 가져옵니다
   const { data, error } = await supabase
     .from('notices')
     .select('id, title, created_at, updated_at, published')
@@ -14,7 +15,13 @@ async function getNotices(): Promise<NoticeListItem[]> {
     return []
   }
   
-  return data || []
+  // 데이터가 없는 경우 빈 배열 반환
+  if (!data || data.length === 0) {
+    return []
+  }
+  
+  // 모든 공지사항 반환 (published 상태와 관계없이)
+  return data
 }
 
 export default async function AdminNoticesPage() {
@@ -49,4 +56,5 @@ export default async function AdminNoticesPage() {
   )
 }
 
+// 항상 최신 데이터를 가져오도록 페이지를 force-dynamic으로 설정
 export const dynamic = 'force-dynamic' 

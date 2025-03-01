@@ -21,17 +21,32 @@ export default function NoticeCard({
 }: NoticeCardProps) {
   const router = useRouter()
 
+  const handleView = () => {
+    router.push(isAdmin ? `/admin/notices/${notice.id}` : `/notices/${notice.id}`)
+  }
+
   const handleEdit = () => {
     router.push(`/admin/notices/view/${notice.id}`)
   }
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // 버튼 클릭 시 이벤트 전파 방지
+    if ((e.target as HTMLElement).tagName === 'BUTTON' || 
+        (e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    
+    handleView();
+  }
+
   return (
-    <div className="group block overflow-hidden rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
-      <Link href={isAdmin ? `/admin/notices/${notice.id}` : `/notices/${notice.id}`}>
-        <h3 className="mb-2 text-lg font-semibold text-gray-900 line-clamp-1">
-          {notice.title}
-        </h3>
-      </Link>
+    <div 
+      className="group block overflow-hidden rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md cursor-pointer"
+      onClick={handleCardClick}
+    >
+      <h3 className="mb-2 text-lg font-semibold text-gray-900 line-clamp-1">
+        {notice.title}
+      </h3>
       
       <div className="mb-3 flex items-center justify-between">
         <time className="text-xs text-gray-500">
@@ -52,7 +67,10 @@ export default function NoticeCard({
         <div className="mt-4 flex justify-end space-x-2">
           {onPublishToggle && (
             <button
-              onClick={() => onPublishToggle(notice.id, !notice.published)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onPublishToggle(notice.id, !notice.published);
+              }}
               className={`rounded px-3 py-1 text-xs ${
                 notice.published 
                   ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
@@ -64,7 +82,10 @@ export default function NoticeCard({
           )}
           
           <button
-            onClick={handleEdit}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEdit();
+            }}
             className="rounded bg-blue-100 px-3 py-1 text-xs text-blue-700 hover:bg-blue-200"
           >
             수정
@@ -72,7 +93,8 @@ export default function NoticeCard({
           
           {onDelete && (
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 if (window.confirm('정말로 이 공지사항을 삭제하시겠습니까?')) {
                   onDelete(notice.id)
                 }

@@ -47,10 +47,11 @@ export default function LatestNewslettersGrid() {
 
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {newsletters.map((newsletter) => (
+      {newsletters.map((newsletter, index) => (
         <NewsletterCard 
           key={newsletter.id} 
-          newsletter={newsletter} 
+          newsletter={newsletter}
+          isPriority={index === 0}
         />
       ))}
     </div>

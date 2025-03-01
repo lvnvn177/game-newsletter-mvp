@@ -107,7 +107,7 @@ export function NoticeTextBlock({
           textareaProps={{
             placeholder
           }}
-          visiableDragbar={false}
+          visibleDragbar={false}
           className="w-full rounded-lg border border-gray-300"
         />
         {isUploading && (

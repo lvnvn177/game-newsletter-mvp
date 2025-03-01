@@ -59,6 +59,9 @@ export async function publishNotice(id: string, publish: boolean = true) {
     if (error) throw error
     
     toast.success(publish ? '공지사항이 게시되었습니다' : '공지사항이 비공개로 설정되었습니다')
+    
+    // 페이지 새로고침 코드 제거 - 클라이언트 상태 관리로 처리
+    
     return true
   } catch (error) {
     console.error('Error publishing notice:', error)

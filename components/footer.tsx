@@ -12,6 +12,8 @@ export function Footer() {
                 alt="GameHye" 
                 width={150} 
                 height={50} 
+                priority
+                style={{ width: 'auto', height: 'auto' }}
                 className="h-auto"
               />
             </div>

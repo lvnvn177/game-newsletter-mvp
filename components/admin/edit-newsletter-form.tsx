@@ -36,6 +36,10 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
   const [history] = useState(() => new EditorHistory())
   const [step, setStep] = useState<'thumbnail' | 'content'>('thumbnail')
   const [error, setError] = useState<string | null>(null)
+  const [saveStatus, setSaveStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string | null;
+  }>({ type: null, message: null })
 
   // 썸네일 이미지 업로드 처리
   const handleThumbnailUpload = async (file: File) => {
@@ -122,6 +126,7 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
 
     try {
       setIsSaving(true)
+      setSaveStatus({ type: null, message: null })
       toast.loading('뉴스레터를 저장하는 중입니다...', { id: 'saving' })
       
       // 썸네일 이미지 처리
@@ -146,6 +151,10 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
         } catch (error) {
           console.error('Error uploading thumbnail:', error)
           toast.error('썸네일 이미지 업로드 중 오류가 발생했습니다', { id: 'saving' })
+          setSaveStatus({ 
+            type: 'error', 
+            message: '썸네일 이미지 업로드 중 오류가 발생했습니다' 
+          })
           return
         }
       }
@@ -196,6 +205,10 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
 
       if (!processedThumbnailUrl) {
         toast.error('썸네일 이미지 처리 중 오류가 발생했습니다', { id: 'saving' })
+        setSaveStatus({ 
+          type: 'error', 
+          message: '썸네일 이미지 처리 중 오류가 발생했습니다' 
+        })
         return
       }
 
@@ -222,6 +235,11 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
         icon: '✅'
       })
       
+      setSaveStatus({ 
+        type: 'success', 
+        message: '뉴스레터가 성공적으로 저장되었습니다' 
+      })
+      
       // 캐시를 무효화하고 페이지 새로고침
       router.refresh()
       
@@ -233,6 +251,11 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
         id: 'saving',
         duration: 5000,
         icon: '❌'
+      })
+      
+      setSaveStatus({ 
+        type: 'error', 
+        message: '저장 중 오류가 발생했습니다. 다시 시도해주세요.' 
       })
     } finally {
       setIsSaving(false)
@@ -353,41 +376,46 @@ export default function EditNewsletterForm({ newsletter }: EditNewsletterFormPro
   // 본문 작성 단계 렌더링
   const renderContentStep = () => {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">뉴스레터 본문 작성</h2>
-          <div className="space-x-2">
-            <button
-              onClick={handlePrevStep}
-              className="rounded px-3 py-1 text-sm hover:bg-gray-100"
-            >
-              이전
-            </button>
-            <button
-              onClick={handleUndo}
-              className="rounded px-3 py-1 text-sm hover:bg-gray-100"
-            >
-              실행 취소
-            </button>
-            <button
-              onClick={handleRedo}
-              className="rounded px-3 py-1 text-sm hover:bg-gray-100"
-            >
-              다시 실행
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
-            >
-              {isSaving ? '저장 중...' : '저장'}
-            </button>
-          </div>
-        </div>
+      <div className="rounded-lg border border-gray-200 bg-white p-8">
+        <h2 className="mb-6 text-xl font-semibold">뉴스레터 내용 편집</h2>
+        
         <EditorCanvas
           blocks={blocks}
           onChange={handleBlocksChange}
         />
+        
+        <div className="mt-8 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={handlePrevStep}
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+          >
+            이전 단계
+          </button>
+          
+          <div className="flex items-center space-x-4">
+            {saveStatus.type && (
+              <div className={`px-4 py-2 rounded-md text-sm ${
+                saveStatus.type === 'success' 
+                  ? 'bg-green-50 text-green-700' 
+                  : 'bg-red-50 text-red-700'
+              }`}>
+                {saveStatus.message}
+              </div>
+            )}
+            
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                isSaving ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {isSaving ? '저장 중...' : '저장하기'}
+            </button>
+          </div>
+        </div>
       </div>
     )
   }

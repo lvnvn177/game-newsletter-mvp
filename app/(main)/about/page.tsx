@@ -19,6 +19,8 @@ export default function AboutPage() {
               alt="GameHye" 
               width={250} 
               height={80} 
+              priority
+              style={{ width: 'auto', height: 'auto' }}
               className="h-auto"
             />
           </div>

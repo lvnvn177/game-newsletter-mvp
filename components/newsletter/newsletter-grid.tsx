@@ -28,12 +28,13 @@ export default function NewsletterGrid({ initialNewsletters, isAdmin = false }: 
 
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {newsletters.map((newsletter) => (
+      {newsletters.map((newsletter, index) => (
         <NewsletterCard 
           key={newsletter.id} 
           newsletter={newsletter}
           isAdmin={isAdmin}
-          onDelete={handleDeleteNewsletter}
+          onDelete={isAdmin ? handleDeleteNewsletter : undefined}
+          isPriority={index === 0}
         />
       ))}
     </div>
