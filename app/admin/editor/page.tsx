@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect } from 'react'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 import EditorCanvas from '@/components/editor/editor-canvas'
-import { BlockControls } from '@/components/editor/block-controls'
 import { EditorHistory } from '@/lib/editor-history'
 import { supabase } from '@/lib/supabase-browser'
 import type { EditorBlock, BlockType } from '@/types/editor'
@@ -31,8 +30,8 @@ export default function EditorPage() {
       setIsUploading(true)
       setError(null)
 
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error('파일 크기는 5MB 이하여야 합니다')
+      if (file.size > 6 * 1024 * 1024) {
+        throw new Error('파일 크기는 6MB 이하여야 합니다')
       }
 
       const fileExt = file.name.split('.').pop()?.toLowerCase()
