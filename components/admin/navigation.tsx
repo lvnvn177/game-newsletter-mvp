@@ -9,10 +9,10 @@ export function Navigation() {
 
   const links = [
     { href: '/admin', label: '대시보드' },
-    { href: '/admin/editor', label: '새 뉴스레터' },
+    // { href: '/admin/editor', label: '새 뉴스레터' },
+    { href: '/admin/newsletters', label: '뉴스레터 관리' },
     { href: '/admin/notices', label: '공지사항 관리' },
     { href: '/admin/subscribers', label: '구독자 관리' },
-    { href: '/admin/newsletters', label: '뉴스레터 관리' },
     { href: '/admin/sends', label: '발송 이력' },
   ]
 
