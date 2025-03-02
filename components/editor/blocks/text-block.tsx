@@ -136,7 +136,7 @@ export function TextBlock({ block, onUpdate }: TextBlockProps) {
     return (
       <div 
         ref={containerRef} 
-        className="my-4 relative"
+        className="my-4 relative bg-white text-black"
         data-color-mode="light"
       >
         <MDEditor
@@ -145,7 +145,9 @@ export function TextBlock({ block, onUpdate }: TextBlockProps) {
           onKeyDown={handleKeyDown}
           preview="edit"
           height={300}
-          style={{ ...block.settings.style }}
+          style={{ ...block.settings.style, backgroundColor: 'white', color: 'black' }}
+          visibleDragbar={false}
+          data-color-mode="light"
           // 이미지 업로드 핸들러는 별도 구현 필요
         />
         <div className="mt-2 flex justify-end">
@@ -163,13 +165,22 @@ export function TextBlock({ block, onUpdate }: TextBlockProps) {
 
   return (
     <div
-      className="cursor-text rounded p-2 hover:bg-gray-50"
+      className="cursor-text rounded p-2 bg-white text-black hover:bg-gray-50"
       onClick={() => setIsEditing(true)}
-      style={block.settings.style}
+      style={{...block.settings.style, backgroundColor: 'white', color: 'black'}}
     >
       {block.content.text ? (
-        <div className="prose max-w-none">
-          <MDPreview source={block.content.text} />
+        <div className="prose max-w-none bg-white text-black">
+          <MDPreview 
+            source={block.content.text} 
+            wrapperElement={{
+              'data-color-mode': 'light'
+            }}
+            style={{
+              backgroundColor: 'white',
+              color: 'black'
+            }}
+          />
         </div>
       ) : (
         <p className="text-gray-400">텍스트를 입력하세요</p>

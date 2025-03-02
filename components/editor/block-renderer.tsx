@@ -44,13 +44,13 @@ export function BlockRenderer({ block, onUpdate }: BlockRendererProps) {
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{...style, backgroundColor: 'white', color: 'black'}}
       {...attributes}
-      className="relative mb-4 rounded border border-transparent hover:border-gray-200"
+      className="relative mb-4 rounded border border-transparent bg-white text-black hover:border-gray-200"
     >
       <div
         {...listeners}
-        className="absolute -left-4 top-1/2 hidden -translate-y-1/2 cursor-move group-hover:block"
+        className="absolute -left-4 top-1/2 hidden -translate-y-1/2 cursor-move text-black group-hover:block"
       >
         ⋮
       </div>

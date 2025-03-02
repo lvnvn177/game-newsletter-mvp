@@ -30,7 +30,7 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
       >
         {copied ? '복사됨' : '링크 복사'}
       </button>
-      <a
+      {/* <a
         href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(
           url
         )}&text=${encodeURIComponent(title)}`}
@@ -39,7 +39,7 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
         className="rounded-lg border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50"
       >
         Twitter에서 공유
-      </a>
+      </a> */}
     </div>
   )
 } 

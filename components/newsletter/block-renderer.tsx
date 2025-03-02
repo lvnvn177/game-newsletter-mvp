@@ -29,18 +29,28 @@ export function NewsletterBlockRenderer({ block }: BlockRendererProps) {
     case 'text':
       return (
         <div 
-          className="prose prose-lg max-w-none"
+          className="prose prose-lg max-w-none bg-white text-black"
           style={block.settings?.style || {}}
         >
           {block.content.text ? (
-            <MDPreview source={block.content.text} />
+            <MDPreview 
+              source={block.content.text} 
+              // 라이트 모드 강제 적용
+              wrapperElement={{
+                'data-color-mode': 'light'
+              }}
+              style={{
+                backgroundColor: 'white',
+                color: 'black'
+              }}
+            />
           ) : null}
         </div>
       )
 
     case 'image':
       return block.content.imageUrl ? (
-        <div className="my-4" style={{
+        <div className="my-4 bg-white" style={{
           textAlign: hasAlignment(block.settings) ? 
             (block.settings.alignment as 'left' | 'center' | 'right') : 'center',
           ...(block.settings?.style || {})
@@ -70,7 +80,7 @@ export function NewsletterBlockRenderer({ block }: BlockRendererProps) {
 
     case 'button':
       return block.content.buttonUrl ? (
-        <div className="my-4 text-center" style={block.settings?.style || {}}>
+        <div className="my-4 text-center bg-white" style={block.settings?.style || {}}>
           <a
             href={block.content.buttonUrl}
             target="_blank"

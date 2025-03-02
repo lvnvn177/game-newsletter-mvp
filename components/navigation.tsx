@@ -15,7 +15,7 @@ export function Navigation() {
   ]
 
   return (
-    <nav className="border-b bg-white">
+    <nav className="border-b bg-white dark:bg-white">
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-8">
@@ -24,8 +24,10 @@ export function Navigation() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'text-sm font-medium transition-colors hover:text-blue-600',
-                  pathname === link.href ? 'text-blue-600' : 'text-gray-600'
+                  'text-sm font-medium transition-colors hover:text-blue-600 dark:hover:text-blue-600',
+                  pathname === link.href 
+                    ? 'text-blue-600 dark:text-blue-600' 
+                    : 'text-gray-600 dark:text-gray-600'
                 )}
               >
                 {link.label}

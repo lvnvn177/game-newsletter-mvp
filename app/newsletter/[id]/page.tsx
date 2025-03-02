@@ -4,6 +4,9 @@ import { supabase } from '@/lib/supabase'
 import { NewsletterBlockRenderer } from '@/components/newsletter/block-renderer'
 import { ShareButtons } from '@/components/newsletter/share-buttons'
 import { SubscribeForm } from '@/components/newsletter/subscribe-form'
+import { Navigation } from '@/components/navigation'
+import { Footer } from '@/components/footer'
+import Link from 'next/link'
 
 type Params = Promise<{ id: string }>;
 
@@ -74,45 +77,51 @@ export default async function NewsletterPage({ params }: PageProps) {
   const currentUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/newsletter/${id}`;
 
   return (
-    <article className="min-h-screen bg-white">
-      {/* 헤더 이미지 */}
-      {newsletter.thumbnail_url && (
-        <div className="relative h-[40vh] w-full">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent" />
-          <img
-            src={newsletter.thumbnail_url}
-            alt=""
-            className="h-full w-full object-cover"
-          />
-        </div>
-      )}
+    <>
+      <Navigation />
+      <div className="bg-white text-black">
+        <article className="min-h-screen bg-white text-black">
+          {/* 헤더 이미지 */}
+          {newsletter.thumbnail_url && (
+            <div className="relative h-[50vh] w-full">
+              <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent" />
+              <img
+                src={newsletter.thumbnail_url}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            </div>
+          )}
 
-      <div className="mx-auto max-w-3xl px-4 py-12">
-        {/* 헤더 */}
-        <header className="mb-8 text-center">
-          <h1 className="mb-4 text-4xl font-bold">{newsletter.title}</h1>
-          {/* <div className="mb-6 text-gray-600">{newsletter.summary}</div> */}
-          <ShareButtons url={currentUrl} title={newsletter.title} />
-        </header>
+          <div className="mx-auto max-w-3xl px-4 py-12">
+            {/* 헤더 */}
+            <header className="mb-8 text-center">
+              <h1 className="mb-4 text-4xl font-bold">{newsletter.title}</h1>
+              {/* <div className="mb-6 text-gray-600">{newsletter.summary}</div> */}
+              <ShareButtons url={currentUrl} title={newsletter.title} />
+            </header>
 
-        {/* 콘텐츠 */}
-        <div className="space-y-8">
-          {contentBlocks.map((block: any, index: number) => (
-            <NewsletterBlockRenderer key={`${block.id}-${index}`} block={block} />
-          ))}
-        </div>
+            {/* 콘텐츠 */}
+            <div className="space-y-8">
+              {contentBlocks.map((block: any, index: number) => (
+                <NewsletterBlockRenderer key={`${block.id}-${index}`} block={block} />
+              ))}
+            </div>
 
-        {/* 구독 섹션 */}
-        <div className="mt-12 rounded-lg bg-gray-50 p-8 text-center">
-          <h2 className="mb-4 text-2xl font-semibold">뉴스레터 구독하기</h2>
-          <p className="mb-6 text-gray-600">
-            매주 새로운 게임 소식을 이메일로 받아보세요.
-          </p>
-          <div className="mx-auto max-w-md">
-            <SubscribeForm />
+            {/* 구독 섹션 */}
+            <div className="mt-12 rounded-lg bg-gray-50 p-8 text-center">
+              <h2 className="mb-4 text-2xl font-semibold">뉴스레터 구독하기</h2>
+              <p className="mb-6 text-gray-600">
+                매주 새로운 게임 소식을 이메일로 받아보세요.
+              </p>
+              <div className="mx-auto max-w-md">
+                <SubscribeForm />
+              </div>
+            </div>
           </div>
-        </div>
+        </article>
       </div>
-    </article>
+      <Footer />
+    </>
   );
 } 

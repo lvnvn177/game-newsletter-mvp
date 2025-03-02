@@ -173,7 +173,7 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
 
   return (
     <div 
-      className="relative min-h-[200px] w-full" 
+      className="relative min-h-[200px] w-full bg-white text-black" 
       role="region" 
       aria-label="이미지 블록"
     >
@@ -184,7 +184,7 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
       )}
       
       {block.content.imageUrl ? (
-        <div className="group relative">
+        <div className="group relative bg-white">
           <div 
             className="absolute left-0 top-1/2 z-10 h-12 w-2 -translate-y-1/2 cursor-ew-resize rounded bg-blue-500/20 opacity-0 transition-opacity group-hover:opacity-100"
             onMouseDown={handleDragStart}
@@ -202,12 +202,13 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
             maxConstraints={[1200, 800]}
             lockAspectRatio
           >
-            <div className="image-container relative overflow-hidden">
+            <div className="image-container relative overflow-hidden bg-white">
               <div style={{ 
                 width: `${Math.round(dimensions.width)}px`, 
                 height: `${Math.round(dimensions.height)}px`,
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                backgroundColor: 'white'
               }}>
                 <div style={{
                   position: 'absolute',
@@ -258,12 +259,9 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
           </button>
         </div>
       ) : (
-        <div
-          className={`flex min-h-[200px] cursor-pointer items-center justify-center rounded border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 ${
-            isLoading ? 'opacity-50' : ''
-          }`}
+        <div 
+          className="flex h-[200px] w-full cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-gray-300 bg-white p-4 text-center hover:bg-gray-50"
           onClick={() => {
-            if (isLoading) return
             const input = document.createElement('input')
             input.type = 'file'
             input.accept = 'image/*'
@@ -273,11 +271,14 @@ export function ImageBlock({ block, onUpdate }: ImageBlockProps) {
             }
             input.click()
           }}
-          role="button"
-          aria-label="이미지 업로드"
-          aria-disabled={isLoading}
         >
-          {isLoading ? '업로드 중...' : '이미지 업로드'}
+          <div className="text-gray-500">
+            <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <p className="mt-2">이미지 추가하기</p>
+            <p className="mt-1 text-sm text-gray-400">JPG, PNG, GIF, WEBP (최대 5MB)</p>
+          </div>
         </div>
       )}
     </div>
